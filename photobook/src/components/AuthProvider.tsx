@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import type { UserProfile, AuthState } from '@/lib/types';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: UserProfile }>;
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (res.ok && data.success) {
         setUser(data.data.user);
-        return { success: true };
+        return { success: true, user: data.data.user };
       }
       return { success: false, error: data.error || 'Login failed' };
     } catch {

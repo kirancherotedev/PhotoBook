@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useToast } from '@/components/Toast';
-import { Search, Eye, ChevronDown } from 'lucide-react';
+import { Search, Eye, ChevronDown, Download } from 'lucide-react';
 import Link from 'next/link';
 
 interface Order {
   id: string; orderNumber: string; status: string; total: number;
+  projectId: string;
   createdAt: string; user?: { name: string; email: string };
 }
 
@@ -116,6 +117,15 @@ export default function AdminOrdersPage() {
                           <option key={s} value={s}>{s.replace('_', ' ')}</option>
                         ))}
                       </select>
+                      <a 
+                        href={`/api/admin/projects/${order.projectId}/export`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-outline btn-sm btn-icon"
+                        title="Download PDF"
+                      >
+                        <Download size={14} />
+                      </a>
                     </div>
                   </td>
                 </tr>

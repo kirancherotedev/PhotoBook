@@ -1,8 +1,17 @@
-import { PrismaClient } from '@prisma/client';
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 import bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
+import path from 'path';
 
-const prisma = new PrismaClient();
+// Use require for the generated client (CJS compat)
+const { getPrismaClientClass } = require('../src/generated/prisma/internal/class');
+const PrismaClient = getPrismaClientClass();
+
+const adapter = new PrismaBetterSqlite3({
+  url: `file:${path.join(process.cwd(), 'prisma', 'dev.db')}`,
+});
+const prisma = new PrismaClient({ adapter });
 
 function createDefaultDesignData(pageCount: number = 20) {
   const pages = [];

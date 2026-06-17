@@ -24,7 +24,11 @@ export default function LoginPage() {
     const result = await login(email, password);
     setLoading(false);
     if (result.success) {
-      router.push(redirect);
+      if (result.user?.role === 'admin' && redirect === '/my-projects') {
+        router.push('/admin');
+      } else {
+        router.push(redirect);
+      }
     } else {
       setError(result.error || 'Login failed');
     }
