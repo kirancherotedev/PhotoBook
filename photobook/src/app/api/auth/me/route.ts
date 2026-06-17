@@ -1,0 +1,17 @@
+import { NextResponse } from 'next/server';
+import { getAuthUser } from '@/lib/auth';
+
+export async function GET() {
+  try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+    }
+    return NextResponse.json({
+      success: true,
+      data: { id: user.userId, email: user.email, name: user.name, role: user.role },
+    });
+  } catch {
+    return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+  }
+}
