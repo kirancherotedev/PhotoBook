@@ -14,7 +14,7 @@ const adapter = new PrismaBetterSqlite3({
 const prisma = new PrismaClient({ adapter });
 
 function createDefaultDesignData(pageCount: number = 20) {
-  const pages = [];
+  const pages: any[] = [];
   
   // Front cover
   pages.push({
