@@ -50,12 +50,12 @@ function SunMark({ size = 20, color = COLOR.primary }: { size?: number; color?: 
    uploaded photos — the point of this section is the customization
    chrome (clip, tilt, caption), not stock imagery. */
 const POLAROIDS = [
-  { gradient: 'linear-gradient(135deg, #dae7c8, #5b674e)', rotate: -6, caption: 'Summer, 2023' },
-  { gradient: 'linear-gradient(135deg, #f3ede5, #c5c7bd)', rotate: 4,  caption: 'Home' },
-  { gradient: 'linear-gradient(135deg, #e5e3d7, #75786f)', rotate: -3, caption: 'The trip' },
-  { gradient: 'linear-gradient(135deg, #5f6553, #1b1c1c)', rotate: 7,  caption: 'Us, always' },
-  { gradient: 'linear-gradient(135deg, #dae7c8, #434f38)', rotate: -8, caption: 'First snow' },
-  { gradient: 'linear-gradient(135deg, #f6f3f2, #becbad)', rotate: 5,  caption: 'Together' },
+  { image: '/polaroids/1.png', rotate: -6, caption: 'Summer, 2023' },
+  { image: '/polaroids/2.png', rotate: 4,  caption: 'Home' },
+  { image: '/polaroids/3.png', rotate: -3, caption: 'The trip' },
+  { image: '/polaroids/4.png', rotate: 7,  caption: 'Us, always' },
+  { image: '/polaroids/5.png', rotate: -8, caption: 'First snow' },
+  { image: '/polaroids/6.png', rotate: 5,  caption: 'Together' },
 ];
 
 export default function HomePage() {
@@ -720,13 +720,12 @@ export default function HomePage() {
                     <div
                       style={{
                         aspectRatio: '1',
-                        background: p.gradient,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        width: '100%',
+                        position: 'relative',
+                        backgroundColor: '#eee'
                       }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: 22, color: 'rgba(255,255,255,0.85)' }}>photo_camera</span>
+                      <img src={p.image} alt={p.caption} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <p
                       style={{
