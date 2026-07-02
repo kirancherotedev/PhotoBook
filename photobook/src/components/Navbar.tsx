@@ -2,216 +2,404 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
-import { usePathname, useRouter } from 'next/navigation';
-import { BookOpen, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+
+/* ── Sun-ray mark (Taikiru-style decorative logo glyph) ── */
+function SunMark({ size = 14, color = '#434f38' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 0 L13.8 9.2 L23 8 L14.6 12 L23 16 L13.8 14.8 L12 24 L10.2 14.8 L1 16 L9.4 12 L1 8 L10.2 9.2 Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
-  const pathname = usePathname();
+  const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const fn = () => setScrolled(window.scrollY > 4);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  // Don't show navbar on editor pages
-  if (pathname.startsWith('/editor')) return null;
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
-  const handleLogout = async () => {
-    await logout();
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  const handleCreate = () => {
     setMenuOpen(false);
-    router.push('/');
+    router.push(isAuthenticated ? '/templates' : '/editor/guest');
   };
 
+  const isActive = (href: string) => pathname === href;
+
+  /* ── Inline style helpers ── */
+  const linkStyle = (active: boolean): React.CSSProperties => ({
+    fontFamily: 'var(--font-hanken)',
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: active ? '#434f38' : '#454840',
+    textDecoration: active ? 'underline' : 'none',
+    textUnderlineOffset: 5,
+    cursor: 'pointer',
+    transition: 'color 0.15s',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+  });
+
   return (
-    <nav style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-      background: 'var(--blush-50)',
-      borderBottom: '0.5px solid var(--blush-400)',
-    }}>
-      <div className="container" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: 64,
-      }}>
-        {/* Logo */}
-        <Link href="/" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          textDecoration: 'none',
-        }}>
-          <BookOpen size={22} color="var(--blush-900)" />
-          <span style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 20,
-            fontWeight: 600,
-            color: 'var(--blush-900)',
-            letterSpacing: '-0.01em',
-          }}>
+    <>
+      <nav
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          width: '100%',
+          backgroundColor: '#fcf9f8',
+          borderBottom: '1px solid rgba(27,28,28,0.1)',
+          boxShadow: scrolled ? '0 1px 8px rgba(0,0,0,0.06)' : 'none',
+          transition: 'box-shadow 0.3s',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: '0 auto',
+            padding: '0 24px',
+            height: 72,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 24,
+          }}
+        >
+          {/* Logo */}
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'var(--font-playfair)',
+              fontSize: 21,
+              fontWeight: 400,
+              color: '#1b1c1c',
+              textDecoration: 'none',
+              flexShrink: 0,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            <SunMark />
             PhotoBook Studio
-          </span>
-        </Link>
-
-        {/* Navigation Links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <Link
-            href="/templates"
-            style={{
-              fontSize: 14,
-              fontWeight: pathname === '/templates' ? 500 : 400,
-              color: pathname === '/templates' ? 'var(--blush-900)' : 'var(--blush-600)',
-              letterSpacing: '0.01em',
-            }}
-          >
-            Templates
-          </Link>
-          <Link
-            href="/pricing"
-            style={{
-              fontSize: 14,
-              fontWeight: pathname === '/pricing' ? 500 : 400,
-              color: pathname === '/pricing' ? 'var(--blush-900)' : 'var(--blush-600)',
-              letterSpacing: '0.01em',
-            }}
-          >
-            Pricing
           </Link>
 
-          {isAuthenticated ? (
-            <div ref={menuRef} style={{ position: 'relative' }}>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="btn btn-ghost btn-sm"
-                style={{ gap: 6 }}
+          {/* Desktop Nav links */}
+          <div
+            className="hidden md:flex"
+            style={{ alignItems: 'center', gap: 32 }}
+          >
+            <Link href="/templates" style={linkStyle(isActive('/templates'))}>Photobooks</Link>
+            <Link href="/templates?category=polaroid" style={linkStyle(false)}>Polaroids</Link>
+            <button onClick={handleCreate} style={linkStyle(false)}>Create</button>
+            <Link href="/pricing" style={linkStyle(isActive('/pricing'))}>Pricing</Link>
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link href="/admin" style={linkStyle(isActive('/admin'))}>Admin</Link>
+            )}
+          </div>
+
+          {/* Desktop Auth */}
+          <div
+            className="hidden md:flex"
+            style={{ alignItems: 'center', gap: 16, flexShrink: 0 }}
+          >
+            {isAuthenticated ? (
+              <>
+                <span style={{ fontFamily: 'var(--font-hanken)', fontSize: 13, color: '#454840' }}>
+                  Hi, {user?.name?.split(' ')[0]}
+                </span>
+                <Link
+                  href="/my-projects"
+                  style={{
+                    fontFamily: 'var(--font-hanken)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: '#434f38',
+                    border: '1px solid rgba(67,79,56,0.3)',
+                    padding: '7px 16px',
+                    borderRadius: 8,
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
+                    transition: 'background 0.15s',
+                  }}
+                >
+                  My Projects
+                </Link>
+                <button
+                  onClick={logout}
+                  style={{
+                    fontFamily: 'var(--font-hanken)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: '#454840',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                style={{
+                  fontFamily: 'var(--font-hanken)',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: '#434f38',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
               >
-                <User size={16} />
-                <span>{user?.name}</span>
-                <ChevronDown size={14} style={{
-                  transform: menuOpen ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 150ms ease',
-                }} />
-              </button>
-
-              {menuOpen && (
-                <div className="animate-scale-in" style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '100%',
-                  marginTop: 8,
-                  background: 'var(--blush-50)',
-                  border: '0.5px solid var(--blush-400)',
-                  borderRadius: 'var(--radius-md)',
-                  minWidth: 200,
-                  padding: '8px 0',
-                  zIndex: 200,
-                }}>
-                  <div style={{
-                    padding: '8px 16px 12px',
-                    borderBottom: '0.5px solid var(--blush-400)',
-                  }}>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{user?.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--blush-600)' }}>{user?.email}</div>
-                  </div>
-
-                  <Link
-                    href="/my-projects"
-                    onClick={() => setMenuOpen(false)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 16px',
-                      fontSize: 14,
-                      color: 'var(--blush-900)',
-                    }}
-                  >
-                    <BookOpen size={15} />
-                    My Projects
-                  </Link>
-
-                  <Link
-                    href="/my-orders"
-                    onClick={() => setMenuOpen(false)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 16px',
-                      fontSize: 14,
-                      color: 'var(--blush-900)',
-                    }}
-                  >
-                    <LayoutDashboard size={15} />
-                    My Orders
-                  </Link>
-
-                  {user?.role === 'admin' && (
-                    <Link
-                      href="/admin"
-                      onClick={() => setMenuOpen(false)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        padding: '10px 16px',
-                        fontSize: 14,
-                        color: 'var(--blush-900)',
-                        borderTop: '0.5px solid var(--blush-400)',
-                      }}
-                    >
-                      <LayoutDashboard size={15} />
-                      Admin Panel
-                    </Link>
-                  )}
-
-                  <button
-                    onClick={handleLogout}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 16px',
-                      fontSize: 14,
-                      color: 'var(--blush-900)',
-                      width: '100%',
-                      border: 'none',
-                      background: 'none',
-                      cursor: 'pointer',
-                      borderTop: '0.5px solid var(--blush-400)',
-                      fontFamily: 'var(--font-sans)',
-                    }}
-                  >
-                    <LogOut size={15} />
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Link href="/login" className="btn btn-ghost btn-sm">
                 Sign In
               </Link>
-              <Link href="/register" className="btn btn-primary btn-sm">
-                Get Started
-              </Link>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 4,
+              color: '#1b1c1c',
+              zIndex: 110,
+              position: 'relative',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>
+              {menuOpen ? 'close' : 'menu'}
+            </span>
+          </button>
         </div>
+      </nav>
+
+      {/* ── Mobile drawer backdrop ── */}
+      {menuOpen && (
+        <div
+          onClick={() => setMenuOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(27,28,28,0.25)',
+            zIndex: 99,
+          }}
+          className="md:hidden"
+        />
+      )}
+
+      {/* ── Mobile drawer ── */}
+      <div
+        className="md:hidden"
+        style={{
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: 280,
+          backgroundColor: '#fcf9f8',
+          zIndex: 100,
+          transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s cubic-bezier(0.16,1,0.3,1)',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '-4px 0 20px rgba(0,0,0,0.1)',
+        }}
+      >
+        {/* Drawer header */}
+        <div
+          style={{
+            height: 72,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 20px',
+            borderBottom: '1px solid rgba(27,28,28,0.1)',
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: 18, fontWeight: 400, color: '#1b1c1c' }}>Menu</span>
+          <button
+            onClick={() => setMenuOpen(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1b1c1c', padding: 4 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 24 }}>close</span>
+          </button>
+        </div>
+
+        {/* Drawer nav links */}
+        <nav style={{ padding: '24px 0', flex: 1, overflowY: 'auto' }}>
+          {[
+            { label: 'Photobooks', href: '/templates', icon: 'menu_book' },
+            { label: 'Custom Polaroids', href: '/polaroids/start', icon: 'photo_camera' },
+            { label: 'Pricing', href: '/pricing', icon: 'sell' },
+          ].map(l => (
+            <Link
+              key={l.href}
+              href={l.href}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '12px 20px',
+                fontFamily: 'var(--font-hanken)',
+                fontSize: 15,
+                color: '#1b1c1c',
+                textDecoration: 'none',
+                transition: 'background 0.15s',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#434f38' }}>{l.icon}</span>
+              {l.label}
+            </Link>
+          ))}
+          <button
+            onClick={handleCreate}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '12px 20px',
+              fontFamily: 'var(--font-hanken)',
+              fontSize: 15,
+              color: '#1b1c1c',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              width: '100%',
+              textAlign: 'left',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#434f38' }}>auto_awesome</span>
+            Create
+          </button>
+          {isAuthenticated && user?.role === 'admin' && (
+            <Link href="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', fontFamily: 'var(--font-hanken)', fontSize: 15, color: '#1b1c1c', textDecoration: 'none' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#434f38' }}>admin_panel_settings</span>
+              Admin
+            </Link>
+          )}
+
+          {/* Divider */}
+          <div style={{ borderTop: '1px solid rgba(27,28,28,0.08)', margin: '16px 0' }} />
+
+          {/* Auth section */}
+          <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {isAuthenticated ? (
+              <>
+                <p style={{ fontFamily: 'var(--font-hanken)', fontSize: 13, color: '#454840' }}>
+                  Signed in as <strong style={{ color: '#1b1c1c' }}>{user?.name}</strong>
+                </p>
+                <Link href="/my-projects" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', fontFamily: 'var(--font-hanken)', fontSize: 14, color: '#1b1c1c', textDecoration: 'none' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#434f38' }}>photo_library</span>
+                  My Projects
+                </Link>
+                <Link href="/my-orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', fontFamily: 'var(--font-hanken)', fontSize: 14, color: '#1b1c1c', textDecoration: 'none' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#434f38' }}>package_2</span>
+                  My Orders
+                </Link>
+                <button
+                  onClick={() => { logout(); setMenuOpen(false); }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 0',
+                    fontFamily: 'var(--font-hanken)',
+                    fontSize: 14,
+                    color: '#ba1a1a',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  style={{
+                    display: 'block',
+                    textAlign: 'center',
+                    padding: '12px 20px',
+                    backgroundColor: '#434f38',
+                    color: '#fff',
+                    fontFamily: 'var(--font-hanken)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    borderRadius: 8,
+                    textDecoration: 'none',
+                    marginBottom: 8,
+                  }}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  style={{
+                    display: 'block',
+                    textAlign: 'center',
+                    padding: '12px 20px',
+                    border: '1px solid rgba(67,79,56,0.3)',
+                    color: '#434f38',
+                    fontFamily: 'var(--font-hanken)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    borderRadius: 8,
+                    textDecoration: 'none',
+                  }}
+                >
+                  Create Account
+                </Link>
+              </>
+            )}
+          </div>
+        </nav>
       </div>
-    </nav>
+    </>
   );
 }

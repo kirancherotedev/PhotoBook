@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, templateId } = body;
+    const { name, templateId, projectType } = body;
 
     let designData: string;
 
@@ -46,28 +46,38 @@ export async function POST(request: NextRequest) {
     } else {
       // Blank project with default design data
       const defaultPages = [];
-      defaultPages.push({
-        id: uuid(),
-        type: 'front_cover',
-        background: { type: 'color', value: '#FFFFFF' },
-        elements: [],
-      });
-      for (let i = 0; i < 20; i++) {
+      if (projectType === 'polaroid') {
         defaultPages.push({
           id: uuid(),
           type: 'content',
           background: { type: 'color', value: '#FFFFFF' },
           elements: [],
         });
+      } else {
+        defaultPages.push({
+          id: uuid(),
+          type: 'front_cover',
+          background: { type: 'color', value: '#FFFFFF' },
+          elements: [],
+        });
+        for (let i = 0; i < 20; i++) {
+          defaultPages.push({
+            id: uuid(),
+            type: 'content',
+            background: { type: 'color', value: '#FFFFFF' },
+            elements: [],
+          });
+        }
+        defaultPages.push({
+          id: uuid(),
+          type: 'back_cover',
+          background: { type: 'color', value: '#FFFFFF' },
+          elements: [],
+        });
       }
-      defaultPages.push({
-        id: uuid(),
-        type: 'back_cover',
-        background: { type: 'color', value: '#FFFFFF' },
-        elements: [],
-      });
       designData = JSON.stringify({
         bookConfig: {
+          projectType: projectType || 'photobook',
           size: '8x8',
           coverType: 'hardcover',
           paperType: 'matte',
