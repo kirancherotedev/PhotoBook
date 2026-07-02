@@ -14,6 +14,7 @@ interface EditorState {
 
   // Actions
   setProject: (id: string, name: string, data: DesignData) => void;
+  setProjectName: (name: string) => void;
   setCurrentPage: (index: number) => void;
   selectElement: (id: string | null) => void;
 
@@ -57,6 +58,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     selectedElementId: null,
     isDirty: false,
   }),
+
+  setProjectName: (name) => set({ projectName: name, isDirty: true }),
 
   setCurrentPage: (index) => set({ currentPageIndex: index, selectedElementId: null }),
   selectElement: (id) => set({ selectedElementId: id }),

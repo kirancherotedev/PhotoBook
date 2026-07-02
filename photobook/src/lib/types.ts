@@ -1,6 +1,7 @@
 // ── Design Data Types (The Core Contract) ──
 
 export interface BookConfig {
+  projectType?: 'photobook' | 'polaroid';
   size: '8x8' | '10x10' | '12x12';
   coverType: 'hardcover' | 'softcover' | 'leather';
   paperType: 'matte' | 'glossy' | 'silk';

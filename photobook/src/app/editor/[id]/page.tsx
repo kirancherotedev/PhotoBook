@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEditorStore } from '@/store/editor-store';
 import { useAuth } from '@/components/AuthProvider';
 import { useToast } from '@/components/Toast';
@@ -16,27 +16,49 @@ export default function EditorPage() {
   const params = useParams();
   const projectId = params.id as string;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const guestType = searchParams.get('type');
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
 
   const {
     designData, currentPageIndex, selectedElementId, isDirty, isSaving, lastSaved, projectName,
-    setProject, setCurrentPage, selectElement,
+    setProject, setProjectName, setCurrentPage, selectElement,
     updateBookConfig, addPage, removePage, updatePageBackground,
     addElement, updateElement, removeElement,
     markSaving, markSaved,
   } = useEditorStore();
 
   const [loading, setLoading] = useState(true);
-  const [activePanel, setActivePanel] = useState<'photos' | 'text' | 'backgrounds' | 'pages' | 'settings'>('photos');
+  const [activePanel, setActivePanel] = useState<'photos' | 'text' | 'backgrounds' | 'pages' | 'settings'>('pages');
   const [zoom, setZoom] = useState(0.7);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, elX: 0, elY: 0 });
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load project
   useEffect(() => {
+    if (projectId === 'guest') {
+      let defaultPages;
+      if (guestType === 'polaroid') {
+        defaultPages = [
+          { id: 'page-1', type: 'content', background: { type: 'color', value: '#FFFFFF' }, elements: [] }
+        ];
+      } else {
+        defaultPages = [
+          { id: 'page-front', type: 'front_cover', background: { type: 'color', value: '#FFFFFF' }, elements: [] },
+          ...Array.from({ length: 20 }).map((_, i) => ({ id: `page-${i}`, type: 'content', background: { type: 'color', value: '#FFFFFF' }, elements: [] })),
+          { id: 'page-back', type: 'back_cover', background: { type: 'color', value: '#FFFFFF' }, elements: [] }
+        ];
+      }
+      setProject('guest', guestType === 'polaroid' ? 'My Polaroids' : 'Guest Project', {
+        bookConfig: { projectType: guestType === 'polaroid' ? 'polaroid' : 'photobook', size: '10x10', coverType: 'hardcover', paperType: 'matte', pageCount: defaultPages.length },
+        pages: defaultPages as any,
+      });
+      setLoading(false);
+      return;
+    }
     if (!authLoading && !isAuthenticated) {
       router.push('/login');
       return;
@@ -59,7 +81,7 @@ export default function EditorPage() {
 
   // Autosave
   const autoSave = useCallback(async () => {
-    if (!isDirty || !projectId) return;
+    if (!projectId || !isDirty || isSaving || projectId === 'guest') return;
     markSaving();
     try {
       await fetch(`/api/projects/${projectId}`, {
@@ -75,17 +97,21 @@ export default function EditorPage() {
 
   useEffect(() => {
     if (isDirty) {
-      clearTimeout(autoSaveTimer.current);
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(autoSave, 2000);
     }
-    return () => clearTimeout(autoSaveTimer.current);
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [isDirty, autoSave]);
 
   const currentPage = designData.pages[currentPageIndex];
 
-  // Canvas dimensions based on book size
+  // Canvas dimensions
+  const isPolaroid = designData.bookConfig.projectType === 'polaroid';
   const sizeMap: Record<string, number> = { '8x8': 480, '10x10': 540, '12x12': 600 };
-  const canvasSize = sizeMap[designData.bookConfig.size] || 480;
+  const baseSize = sizeMap[designData.bookConfig.size] || 540;
+  
+  const canvasHeight = baseSize;
+  const canvasWidth = isPolaroid ? baseSize * (88 / 107) : baseSize;
 
   // Mouse handlers for dragging elements
   const handleMouseDown = (e: React.MouseEvent, elementId: string) => {
@@ -129,8 +155,8 @@ export default function EditorPage() {
     if (!currentPage) return;
     addElement(currentPage.id, {
       type: 'text',
-      x: canvasSize / 2 - 100,
-      y: canvasSize / 2 - 20,
+      x: canvasWidth / 2 - 100,
+      y: isPolaroid ? canvasHeight * 0.8 : canvasHeight / 2 - 20,
       width: 200,
       height: 40,
       rotation: 0,
@@ -139,7 +165,7 @@ export default function EditorPage() {
         content: 'Double-click to edit',
         fontFamily: 'Inter',
         fontSize: 18,
-        color: '#86636A',
+        color: 'var(--color-on-surface)',
         textAlign: 'center',
         fontWeight: '400',
       },
@@ -154,14 +180,52 @@ export default function EditorPage() {
     reader.onload = () => {
       const img = new window.Image();
       img.onload = () => {
-        const maxW = canvasSize * 0.6;
+        let w = img.width;
+        let h = img.height;
         const ratio = img.width / img.height;
-        const w = Math.min(maxW, img.width);
-        const h = w / ratio;
+        
+        let targetX = 0;
+        let targetY = 0;
+
+        if (currentPage.type === 'front_cover' || currentPage.type === 'back_cover') {
+          // Full bleed for covers
+          w = canvasWidth;
+          h = canvasHeight;
+          targetX = 0;
+          targetY = 0;
+        } else if (isPolaroid) {
+          // Polaroid photo area is a perfect square at the top
+          const margin = canvasWidth * 0.06;
+          const photoAreaSize = canvasWidth - (margin * 2);
+          
+          // Force the element to be a perfect square, it will be cropped by objectFit: cover
+          w = photoAreaSize;
+          h = photoAreaSize;
+          
+          targetX = margin;
+          targetY = margin;
+        } else {
+          // Content pages get some padding (fit within 85%)
+          const maxW = canvasWidth * 0.85;
+          const maxH = canvasHeight * 0.85;
+          
+          if (w > maxW || h > maxH) {
+             if (w / maxW > h / maxH) {
+                w = maxW;
+                h = w / ratio;
+             } else {
+                h = maxH;
+                w = h * ratio;
+             }
+          }
+          targetX = (canvasWidth - w) / 2;
+          targetY = (canvasHeight - h) / 2;
+        }
+
         addElement(currentPage.id, {
           type: 'image',
-          x: (canvasSize - w) / 2,
-          y: (canvasSize - h) / 2,
+          x: targetX,
+          y: targetY,
           width: w,
           height: h,
           rotation: 0,
@@ -172,6 +236,11 @@ export default function EditorPage() {
             originalHeight: img.height,
           },
         });
+
+        // Auto-advance to the next page if not on the last page
+        if (currentPageIndex < designData.pages.length - 1) {
+          setCurrentPage(currentPageIndex + 1);
+        }
       };
       img.src = reader.result as string;
     };
@@ -185,11 +254,11 @@ export default function EditorPage() {
     return (
       <div style={{
         height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'var(--blush-50)',
+        background: 'var(--color-surface)',
       }}>
         <div style={{ textAlign: 'center' }}>
-          <BookOpen size={36} color="var(--blush-600)" style={{ marginBottom: 12 }} />
-          <p style={{ color: 'var(--blush-600)', fontSize: 14 }}>Loading editor...</p>
+          <BookOpen size={36} color="var(--color-on-surface-variant)" style={{ marginBottom: 12 }} />
+          <p style={{ color: 'var(--color-on-surface-variant)', fontSize: 14 }}>Loading editor...</p>
         </div>
       </div>
     );
@@ -199,21 +268,36 @@ export default function EditorPage() {
     <div className="editor-layout">
       {/* ── Toolbar ── */}
       <div className="editor-toolbar">
-        <button onClick={() => router.push('/my-projects')} className="btn btn-ghost btn-sm">
+        <button onClick={() => router.push(isAuthenticated ? '/my-projects' : '/templates')} className="btn btn-ghost btn-sm">
           <ArrowLeft size={16} /> Back
         </button>
 
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-          <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: 15, color: 'var(--blush-900)' }}>
-            {projectName}
-          </span>
-          <span style={{ fontSize: 11, color: 'var(--blush-600)' }}>
+          <input
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            style={{ 
+              fontFamily: 'var(--font-serif)', 
+              fontWeight: 600, 
+              fontSize: 15, 
+              color: 'var(--color-primary)',
+              background: 'transparent',
+              border: '1px solid transparent',
+              borderBottom: '1px solid rgba(0,0,0,0.1)',
+              textAlign: 'center',
+              outline: 'none',
+              padding: '2px 8px',
+              maxWidth: 200,
+            }}
+            placeholder="Untitled Book"
+          />
+          <span style={{ fontSize: 11, color: 'var(--color-on-surface-variant)' }}>
             Page {currentPageIndex + 1} of {designData.pages.length}
           </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, color: 'var(--blush-600)' }}>
+          <span style={{ fontSize: 11, color: 'var(--color-on-surface-variant)' }}>
             {isSaving ? 'Saving...' : isDirty ? 'Unsaved changes' : lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : ''}
           </span>
           <button onClick={autoSave} className="btn btn-ghost btn-sm" disabled={!isDirty}>
@@ -251,7 +335,7 @@ export default function EditorPage() {
         {/* Photos Panel */}
         {activePanel === 'photos' && (
           <div>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--blush-900)', marginBottom: 12 }}>Upload Photos</h4>
+            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)', marginBottom: 12 }}>Upload Photos</h4>
             <label
               className="btn btn-outline btn-sm"
               style={{ width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'center' }}
@@ -259,7 +343,7 @@ export default function EditorPage() {
               <ImageIcon size={14} /> Choose File
               <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
             </label>
-            <p style={{ fontSize: 11, color: 'var(--blush-600)', marginTop: 8, textAlign: 'center' }}>
+            <p style={{ fontSize: 11, color: 'var(--color-on-surface-variant)', marginTop: 8, textAlign: 'center' }}>
               Drag uploaded photos onto the canvas
             </p>
           </div>
@@ -268,7 +352,7 @@ export default function EditorPage() {
         {/* Text Panel */}
         {activePanel === 'text' && (
           <div>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--blush-900)', marginBottom: 12 }}>Add Text</h4>
+            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)', marginBottom: 12 }}>Add Text</h4>
             <button onClick={handleAddText} className="btn btn-outline btn-sm" style={{ width: '100%', marginBottom: 8 }}>
               <Type size={14} /> Add Heading
             </button>
@@ -276,11 +360,11 @@ export default function EditorPage() {
               onClick={() => {
                 if (!currentPage) return;
                 addElement(currentPage.id, {
-                  type: 'text', x: canvasSize / 2 - 80, y: canvasSize / 2 - 10,
+                  type: 'text', x: canvasWidth / 2 - 80, y: (isPolaroid ? canvasHeight * 0.8 : canvasHeight / 2 - 10),
                   width: 160, height: 24, rotation: 0, zIndex: currentPage.elements.length + 1,
                   properties: {
                     content: 'Body text', fontFamily: 'Inter', fontSize: 13,
-                    color: '#86636A', textAlign: 'left', fontWeight: '400',
+                    color: 'var(--color-on-surface)', textAlign: 'left', fontWeight: '400',
                   },
                 });
               }}
@@ -295,7 +379,7 @@ export default function EditorPage() {
         {/* Backgrounds Panel */}
         {activePanel === 'backgrounds' && (
           <div>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--blush-900)', marginBottom: 12 }}>Page Background</h4>
+            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)', marginBottom: 12 }}>Page Background</h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {['#FFFFFF', '#FEF6F7', '#F0DADD', '#E5BDC5', '#F5F0EB', '#E8E4E0', '#F0F0F0', '#2C2C2C'].map(color => (
                 <button
@@ -303,7 +387,7 @@ export default function EditorPage() {
                   onClick={() => currentPage && updatePageBackground(currentPage.id, { type: 'color', value: color })}
                   style={{
                     width: '100%', aspectRatio: '1', borderRadius: 4,
-                    background: color, border: `1.5px solid ${currentPage?.background.value === color ? 'var(--blush-900)' : 'var(--blush-400)'}`,
+                    background: color, border: `1.5px solid ${currentPage?.background.value === color ? 'var(--color-primary)' : 'var(--color-outline-variant)'}`,
                     cursor: 'pointer',
                   }}
                 />
@@ -316,7 +400,7 @@ export default function EditorPage() {
         {activePanel === 'pages' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--blush-900)' }}>Pages ({designData.pages.length})</h4>
+              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)' }}>Pages ({designData.pages.length})</h4>
               <button onClick={addPage} className="btn btn-ghost btn-sm" style={{ padding: 4 }}>
                 <Plus size={14} />
               </button>
@@ -329,24 +413,32 @@ export default function EditorPage() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
                     borderRadius: 4, cursor: 'pointer',
-                    background: idx === currentPageIndex ? 'var(--blush-200)' : 'transparent',
-                    border: idx === currentPageIndex ? '0.5px solid var(--blush-400)' : '0.5px solid transparent',
+                    background: idx === currentPageIndex ? 'var(--color-surface-container)' : 'transparent',
+                    border: idx === currentPageIndex ? '0.5px solid var(--color-outline-variant)' : '0.5px solid transparent',
                   }}
                 >
                   <div style={{
                     width: 36, height: 36, borderRadius: 3, flexShrink: 0,
                     background: page.background.value || '#fff',
-                    border: '0.5px solid var(--blush-400)',
+                    border: '0.5px solid var(--color-outline-variant)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, color: 'var(--blush-600)',
+                    fontSize: 10, color: 'var(--color-on-surface-variant)',
                   }}>
-                    {idx + 1}
+                    {page.elements.find(el => el.type === 'image') ? (
+                      <img 
+                        src={(page.elements.find(el => el.type === 'image')!.properties as { src: string }).src} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 2 }}
+                        alt="" 
+                      />
+                    ) : (
+                      idx + 1
+                    )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--blush-900)', textTransform: 'capitalize' }}>
+                    <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-primary)', textTransform: 'capitalize' }}>
                       {page.type === 'content' ? `Page ${idx}` : page.type.replace('_', ' ')}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--blush-600)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--color-on-surface-variant)' }}>
                       {page.elements.length} element{page.elements.length !== 1 ? 's' : ''}
                     </div>
                   </div>
@@ -368,31 +460,42 @@ export default function EditorPage() {
         {/* Book Settings Panel */}
         {activePanel === 'settings' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--blush-900)' }}>Book Settings</h4>
-            <div className="input-group">
-              <label>Size</label>
-              <select className="input" value={designData.bookConfig.size} onChange={e => updateBookConfig({ size: e.target.value as DesignData['bookConfig']['size'] })}>
-                <option value="8x8">8×8 inch</option>
-                <option value="10x10">10×10 inch</option>
-                <option value="12x12">12×12 inch</option>
-              </select>
-            </div>
-            <div className="input-group">
-              <label>Cover Type</label>
-              <select className="input" value={designData.bookConfig.coverType} onChange={e => updateBookConfig({ coverType: e.target.value as DesignData['bookConfig']['coverType'] })}>
-                <option value="hardcover">Hardcover</option>
-                <option value="softcover">Softcover</option>
-                <option value="leather">Leather</option>
-              </select>
-            </div>
-            <div className="input-group">
-              <label>Paper Type</label>
-              <select className="input" value={designData.bookConfig.paperType} onChange={e => updateBookConfig({ paperType: e.target.value as DesignData['bookConfig']['paperType'] })}>
-                <option value="matte">Matte</option>
-                <option value="glossy">Glossy</option>
-                <option value="silk">Silk</option>
-              </select>
-            </div>
+            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)' }}>
+              {isPolaroid ? 'Polaroid Settings' : 'Book Settings'}
+            </h4>
+            {!isPolaroid && (
+              <>
+                <div className="input-group">
+                  <label>Size</label>
+                  <select className="input" value={designData.bookConfig.size} onChange={e => updateBookConfig({ size: e.target.value as DesignData['bookConfig']['size'] })}>
+                    <option value="8x8">8×8 inch</option>
+                    <option value="10x10">10×10 inch</option>
+                    <option value="12x12">12×12 inch</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>Cover Type</label>
+                  <select className="input" value={designData.bookConfig.coverType} onChange={e => updateBookConfig({ coverType: e.target.value as DesignData['bookConfig']['coverType'] })}>
+                    <option value="hardcover">Hardcover</option>
+                    <option value="softcover">Softcover</option>
+                    <option value="leather">Leather</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>Paper Type</label>
+                  <select className="input" value={designData.bookConfig.paperType} onChange={e => updateBookConfig({ paperType: e.target.value as DesignData['bookConfig']['paperType'] })}>
+                    <option value="matte">Matte</option>
+                    <option value="glossy">Glossy</option>
+                    <option value="silk">Silk</option>
+                  </select>
+                </div>
+              </>
+            )}
+            {isPolaroid && (
+              <div style={{ fontSize: 12, color: 'var(--color-on-surface-variant)' }}>
+                Polaroid frames use premium vintage stock. Configure border tint from the Backgrounds tab!
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -402,13 +505,13 @@ export default function EditorPage() {
         {/* Zoom Controls */}
         <div style={{
           position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
-          display: 'flex', alignItems: 'center', gap: 8, background: 'var(--blush-50)',
-          border: '0.5px solid var(--blush-400)', borderRadius: 6, padding: '4px 8px', zIndex: 10,
+          display: 'flex', alignItems: 'center', gap: 8, background: 'var(--color-surface)',
+          border: '0.5px solid var(--color-outline-variant)', borderRadius: 6, padding: '4px 8px', zIndex: 10,
         }}>
           <button onClick={() => setZoom(Math.max(0.3, zoom - 0.1))} className="btn btn-ghost btn-icon" style={{ padding: 4 }}>
             <ZoomOut size={14} />
           </button>
-          <span style={{ fontSize: 12, color: 'var(--blush-600)', minWidth: 40, textAlign: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--color-on-surface-variant)', minWidth: 40, textAlign: 'center' }}>
             {Math.round(zoom * 100)}%
           </span>
           <button onClick={() => setZoom(Math.min(2, zoom + 0.1))} className="btn btn-ghost btn-icon" style={{ padding: 4 }}>
@@ -426,7 +529,7 @@ export default function EditorPage() {
           className="btn btn-ghost btn-icon"
           style={{
             position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
-            background: 'var(--blush-50)', border: '0.5px solid var(--blush-400)',
+            background: 'var(--color-surface)', border: '0.5px solid var(--color-outline-variant)',
             zIndex: 10, opacity: currentPageIndex === 0 ? 0.3 : 1,
           }}
         >
@@ -438,7 +541,7 @@ export default function EditorPage() {
           className="btn btn-ghost btn-icon"
           style={{
             position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
-            background: 'var(--blush-50)', border: '0.5px solid var(--blush-400)',
+            background: 'var(--color-surface)', border: '0.5px solid var(--color-outline-variant)',
             zIndex: 10, opacity: currentPageIndex >= designData.pages.length - 1 ? 0.3 : 1,
           }}
         >
@@ -450,13 +553,13 @@ export default function EditorPage() {
           <div
             ref={canvasRef}
             style={{
-              width: canvasSize,
-              height: canvasSize,
+              width: canvasWidth,
+              height: canvasHeight,
               background: currentPage.background.value || '#FFFFFF',
               transform: `scale(${zoom})`,
               transformOrigin: 'center center',
               position: 'relative',
-              border: '0.5px solid var(--blush-400)',
+              border: '0.5px solid var(--color-outline-variant)',
               overflow: 'hidden',
               transition: 'transform 0.2s ease',
             }}
@@ -464,7 +567,7 @@ export default function EditorPage() {
             {/* Page type label */}
             <div style={{
               position: 'absolute', top: 8, left: 8, fontSize: 10, padding: '2px 6px',
-              background: 'rgba(134,99,106,0.1)', borderRadius: 3, color: 'var(--blush-600)',
+              background: 'var(--color-surface-variant)', borderRadius: 3, color: 'var(--color-on-surface-variant)',
               textTransform: 'uppercase', letterSpacing: '0.06em', zIndex: 50,
             }}>
               {currentPage.type.replace('_', ' ')}
@@ -486,7 +589,7 @@ export default function EditorPage() {
                     height: element.height,
                     transform: `rotate(${element.rotation}deg)`,
                     cursor: dragging === element.id ? 'grabbing' : 'grab',
-                    outline: selectedElementId === element.id ? '2px solid var(--blush-900)' : 'none',
+                    outline: selectedElementId === element.id ? '2px solid var(--color-primary)' : 'none',
                     outlineOffset: 2,
                     zIndex: element.zIndex,
                     userSelect: 'none',
@@ -555,13 +658,35 @@ export default function EditorPage() {
                       }}
                       style={{
                         position: 'absolute', right: -5, bottom: -5,
-                        width: 10, height: 10, background: 'var(--blush-900)',
+                        width: 10, height: 10, background: 'var(--color-primary)',
                         borderRadius: 2, cursor: 'nwse-resize',
                       }}
                     />
                   )}
                 </div>
               ))}
+
+            {/* Click to add image overlay */}
+            {currentPage && currentPage.elements.length === 0 && (
+              <label
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(255, 255, 255, 0.5)',
+                  color: 'var(--color-on-surface-variant)',
+                  fontFamily: 'var(--font-hanken)',
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  zIndex: 9999,
+                }}
+              >
+                <span>Click here to add image</span>
+                <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+              </label>
+            )}
           </div>
         )}
       </div>
@@ -571,7 +696,7 @@ export default function EditorPage() {
         {selectedElement ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--blush-900)', textTransform: 'capitalize' }}>
+              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)', textTransform: 'capitalize' }}>
                 {selectedElement.type} Properties
               </h4>
               <button
@@ -585,7 +710,7 @@ export default function EditorPage() {
 
             {/* Position & Size */}
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--blush-600)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-on-surface-variant)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
                 Position & Size
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
@@ -734,7 +859,7 @@ export default function EditorPage() {
             </div>
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--blush-600)' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-on-surface-variant)' }}>
             <Square size={32} style={{ marginBottom: 12, opacity: 0.4 }} />
             <p style={{ fontSize: 13 }}>Select an element to edit its properties</p>
           </div>
@@ -743,3 +868,4 @@ export default function EditorPage() {
     </div>
   );
 }
+

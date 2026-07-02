@@ -2,14 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
 import { useAuth } from '@/components/AuthProvider';
 import { useToast } from '@/components/Toast';
-import { BookOpen, ArrowRight, Filter } from 'lucide-react';
-import { motion } from 'framer-motion';
 import type { TemplateItem } from '@/lib/types';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import Link from 'next/link';
+import { PRODUCT_IMAGES, formatProductName } from '@/lib/products';
 
-const categories = ['all', 'wedding', 'travel', 'baby', 'portfolio'];
+const CATEGORIES = [
+  { key: 'all',          label: 'All' },
+  { key: 'wedding',      label: 'Wedding' },
+  { key: 'travel',       label: 'Travel' },
+  { key: 'baby',         label: 'Baby' },
+  { key: 'relationship', label: 'Relationship' },
+  { key: 'portfolio',    label: 'Portfolio' },
+];
+
+const FALLBACK = [
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuB40QZoa3vbcCOv-qZUPABvj6DOr1zIA4xLWBzaNfIukHHT9c2MMWRT1cGc6tujUQPJTedWtwT7WdSkDkKy9sIy4IQx_UnzwC_4dWf1EzRZEX7rDvQwqqWqpjmnirAMGy_l2e41Yj5psNXYYAOqpUjVur11RHOx-HnOtmbBT3MLT4Ur_BnXDINVZDklDwNVyMW3L4FADkBk-2F6rAC_67XUPOKmCiU57240aUxN7VqVgfRFHL_vxoXM-C--uQ0nN6fs1Ag1SS4GEn0',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuDOLR65wso_o4TY89sKcTvBRS193yQKwCfh3VcfL6u-8BHdb7dwiCOopFCsSXNh9xeXiugDIYcTfwH8DjBzbtDgt9OhlxD3fwuSBWg89-qw7DEpMW8bdGYRtyk85NyOiIILDnjb2UFi0mRBEHsWlL2-IeyDzgat-UhBjFt9_2Hbx2r_Cq2ShTGOR93DNRS4KEA2rsyC_uib9zOhSX9tqlS_GjtZNExas-PYQvqVAOpBDnwZYMSankhaYjIJCjd3kpbhR1v0uwoW0Tw',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuALRjE1x-ZZ0wX5Kxh70IlHBb4jHxfweJnCG-yvf0rw5NX4Lhj7snp81sQL3zgMbCkx7ov0tgoGOlV_K2qdEr8yJvpDJZTLvABb3h5f15i7NbaYtzfctFv-ju0-N_rKFct3xTSHiYNHb_u2z21as60fHuL1XkLcc5JFbGL4DAxCRoEhF_5JxgtmkvHjyoVrWu-Vh5L1GVs1Nuv7fS_1t9c1Mzq53WGNpdIl9-Yuw21uKmMmZDDH51dqqyqJFHXZrZYajMgbE8r5Vj0',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBWQKxqOpcrlDbpWYSU9g8KPivltRMVigTbl4x9nGxc5DKzCgC56SmEUvaNf4bhJ9eLZnT5Cl53LGlN82-JNmslW09FLGvA22ZfeFwy9gxC6O4SKCBmQA0MwAIj63yaYc1w0mdARufnk07O153vI5a5SzlrEKGBTY571Kui1UsHMcedH0wLhcUfj8EBA3HZMeJWnoR5_pHedNfz4rVss5TKD04u336d_F4EBg4GAQIDZhrDUw2lRBQe4VqC1YnVh_rbdOVMaGSerlc',
+];
 
 export default function TemplatesPage() {
   const { isAuthenticated } = useAuth();
@@ -23,46 +38,28 @@ export default function TemplatesPage() {
   useEffect(() => {
     fetch('/api/templates')
       .then(r => r.json())
-      .then(d => {
-        if (d.success) setTemplates(d.data);
-        setLoading(false);
-      });
+      .then(d => { 
+        if (d.success && d.data.length > 0) {
+          const baseId = d.data[0].id;
+          const categories = ['wedding', 'travel', 'baby', 'relationship', 'portfolio'];
+          const mockTemplates = PRODUCT_IMAGES.map((img, i) => ({
+            id: baseId, // valid db ID so creation works
+            name: formatProductName(img),
+            description: 'Explore our artisanal templates, designed to beautifully frame your memories with timeless elegance.',
+            category: categories[i % categories.length],
+            thumbnail: img,
+          }));
+          setTemplates(mockTemplates as unknown as TemplateItem[]);
+        }
+        setLoading(false); 
+      })
+      .catch(() => setLoading(false));
   }, []);
 
-  const filtered = activeCategory === 'all'
-    ? templates
-    : templates.filter(t => t.category === activeCategory);
-
-  const handleUseTemplate = async (templateId: string) => {
-    if (!isAuthenticated) {
-      router.push('/login?redirect=/templates');
-      return;
-    }
-
-    setCreating(templateId);
-    try {
-      const res = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push(`/editor/${data.data.id}`);
-      } else {
-        showToast(data.error || 'Failed to create project', 'error');
-      }
-    } catch {
-      showToast('Network error', 'error');
-    }
-    setCreating(null);
-  };
+  const filtered = activeCategory === 'all' ? templates : templates.filter(t => t.category === activeCategory);
 
   const handleBlankProject = async () => {
-    if (!isAuthenticated) {
-      router.push('/login?redirect=/templates');
-      return;
-    }
+    if (!isAuthenticated) { router.push('/editor/guest'); return; }
     setCreating('blank');
     try {
       const res = await fetch('/api/projects', {
@@ -71,166 +68,353 @@ export default function TemplatesPage() {
         body: JSON.stringify({ name: 'My Photo Book' }),
       });
       const data = await res.json();
-      if (data.success) {
-        router.push(`/editor/${data.data.id}`);
-      }
-    } catch {
-      showToast('Network error', 'error');
-    }
-    setCreating(null);
+      if (data.success) { router.push(`/editor/${data.data.id}`); }
+      else { showToast(data.error || 'Failed', 'error'); setCreating(null); }
+    } catch { showToast('Network error', 'error'); setCreating(null); }
+  };
+
+  const handleUseTemplate = async (id: string) => {
+    if (!isAuthenticated) { router.push(`/login?redirect=/templates/${id}`); return; }
+    setCreating(id);
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId: id }),
+      });
+      const data = await res.json();
+      if (data.success) { router.push(`/editor/${data.data.id}`); }
+      else { showToast(data.error || 'Failed', 'error'); setCreating(null); }
+    } catch { showToast('Network error', 'error'); setCreating(null); }
   };
 
   return (
-    <>
+    <div style={{ minHeight: '100vh', backgroundColor: '#fff8f0', color: '#1d1b17' }}>
       <Navbar />
-      <div className="container page-enter" style={{ padding: '48px 24px 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <p style={{
-            fontSize: 12, fontWeight: 600, letterSpacing: '0.15em',
-            textTransform: 'uppercase', color: 'var(--blush-600)', marginBottom: 12,
-          }}>
-            Choose Your Starting Point
-          </p>
-          <h1 style={{
-            fontFamily: 'var(--font-serif)', fontSize: '2.2rem', color: 'var(--blush-900)', marginBottom: 12,
-          }}>
-            Template Gallery
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--blush-600)', maxWidth: 500, margin: '0 auto' }}>
-            Pick a template to get started, or begin from a blank canvas. Every element is fully customizable.
-          </p>
-        </div>
 
-        {/* Category Filter */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 40,
-        }}>
-          <Filter size={14} color="var(--blush-600)" />
-          {categories.map(cat => (
+      <main style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 24px 96px' }}>
+
+        {/* ── Page Header ── */}
+        <header style={{ textAlign: 'center', marginBottom: 56 }}>
+          <span
+            style={{
+              display: 'block',
+              fontFamily: 'var(--font-hanken)',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: '#745757',
+              marginBottom: 16,
+            }}
+          >
+            Our Collections
+          </span>
+          <h1
+            style={{
+              fontFamily: 'var(--font-playfair)',
+              fontSize: 'clamp(28px, 5vw, 48px)',
+              fontWeight: 600,
+              color: '#173124',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              marginBottom: 16,
+              textAlign: 'center',
+            }}
+          >
+            Curated Collections
+          </h1>
+          <p
+            style={{
+              fontFamily: 'var(--font-hanken)',
+              fontSize: 16,
+              color: '#424844',
+              lineHeight: 1.7,
+              maxWidth: 560,
+              margin: '0 auto',
+              textAlign: 'center',
+            }}
+          >
+            Explore our artisanal templates, designed to beautifully frame your memories with timeless elegance.
+          </p>
+        </header>
+
+        {/* ── Category Filter Pills ── */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: 10,
+            marginBottom: 48,
+          }}
+        >
+          {CATEGORIES.map(cat => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`btn btn-sm ${activeCategory === cat ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ textTransform: 'capitalize' }}
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '8px 20px',
+                borderRadius: 999,
+                fontFamily: 'var(--font-hanken)',
+                fontSize: 14,
+                fontWeight: activeCategory === cat.key ? 600 : 400,
+                border: activeCategory === cat.key
+                  ? '1px solid rgba(194,200,194,0.6)'
+                  : '1px solid transparent',
+                backgroundColor: activeCategory === cat.key ? '#e7e2da' : '#f3ede5',
+                color: activeCategory === cat.key ? '#173124' : '#424844',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
 
-        {/* Blank Canvas Card */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: 24,
-        }}>
-          <motion.div
-            whileHover={{ y: -4 }}
-            transition={{ duration: 0.2 }}
+        {/* ── Create Blank CTA ── */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            padding: '20px 24px',
+            border: '1px dashed rgba(194,200,194,0.7)',
+            borderRadius: 8,
+            backgroundColor: '#f3ede5',
+            marginBottom: 40,
+          }}
+        >
+          <div>
+            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: 17, fontWeight: 500, color: '#173124', marginBottom: 4 }}>Start with a blank canvas</p>
+            <p style={{ fontFamily: 'var(--font-hanken)', fontSize: 13, color: '#424844' }}>Full creative control — no template required.</p>
+          </div>
+          <button
             onClick={handleBlankProject}
+            disabled={!!creating}
             style={{
-              background: 'var(--blush-50)',
-              border: '1px dashed var(--blush-400)',
-              borderRadius: 8,
-              cursor: 'pointer',
-              overflow: 'hidden',
+              flexShrink: 0,
+              backgroundColor: '#173124',
+              color: '#fff',
+              fontFamily: 'var(--font-hanken)',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              padding: '12px 24px',
+              borderRadius: 4,
+              border: 'none',
+              cursor: creating ? 'not-allowed' : 'pointer',
+              opacity: creating ? 0.6 : 1,
             }}
           >
-            <div style={{
-              aspectRatio: '4/3',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-              gap: 12,
-            }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: '50%',
-                border: '1px dashed var(--blush-400)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 24, color: 'var(--blush-600)',
-              }}>+</div>
-              <span style={{ fontSize: 13, color: 'var(--blush-600)', fontWeight: 500 }}>
-                {creating === 'blank' ? 'Creating...' : 'Blank Canvas'}
-              </span>
-            </div>
-            <div style={{ padding: '16px 20px', borderTop: '0.5px solid var(--blush-400)' }}>
-              <h4 style={{
-                fontFamily: 'var(--font-serif)', fontSize: 16, fontWeight: 600,
-                color: 'var(--blush-900)', marginBottom: 4,
-              }}>Start from Scratch</h4>
-              <p style={{ fontSize: 13, color: 'var(--blush-600)' }}>
-                Complete creative freedom with a blank canvas
-              </p>
-            </div>
-          </motion.div>
+            {creating === 'blank' ? 'Creating...' : 'Create Custom'}
+          </button>
+        </div>
 
-          {/* Template Cards */}
-          {loading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} style={{ borderRadius: 8, overflow: 'hidden' }}>
-                <div className="skeleton" style={{ aspectRatio: '4/3' }} />
-                <div style={{ padding: 20 }}>
-                  <div className="skeleton" style={{ height: 20, width: '60%', marginBottom: 8 }} />
-                  <div className="skeleton" style={{ height: 14, width: '90%' }} />
-                </div>
+        {/* ── Template Grid ── */}
+        {loading ? (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 32,
+            }}
+          >
+            {[...Array(6)].map((_, i) => (
+              <div key={i}>
+                <div className="skeleton" style={{ aspectRatio: '1.25', borderRadius: 4, marginBottom: 16 }} />
+                <div className="skeleton" style={{ height: 20, width: '65%', borderRadius: 3, marginBottom: 8 }} />
+                <div className="skeleton" style={{ height: 14, width: '45%', borderRadius: 3 }} />
               </div>
-            ))
-          ) : (
-            filtered.map(template => (
-              <motion.div
-                key={template.id}
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '80px 0', color: '#424844' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#c2c8c2', display: 'block', marginBottom: 16 }}>photo_library</span>
+            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: 18, fontWeight: 500, marginBottom: 8 }}>No templates found</p>
+            <p style={{ fontFamily: 'var(--font-hanken)', fontSize: 14 }}>Try a different category or start with a blank canvas.</p>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '40px 28px',
+            }}
+          >
+            {/* Blank Canvas Card */}
+            <div className="group" style={{ cursor: 'pointer' }} onClick={handleBlankProject}>
+              <div
                 style={{
-                  background: 'var(--blush-100)',
-                  border: '0.5px solid var(--blush-400)',
-                  borderRadius: 8,
+                  position: 'relative',
+                  aspectRatio: '1.25',
                   overflow: 'hidden',
-                }}
-              >
-                <div style={{
-                  aspectRatio: '4/3',
-                  background: 'var(--blush-200)',
+                  backgroundColor: '#f3ede5',
+                  border: '1px dashed rgba(194,200,194,0.7)',
+                  borderRadius: 4,
+                  padding: 8,
+                  marginBottom: 16,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexDirection: 'column',
-                  gap: 8,
-                }}>
-                  <BookOpen size={32} color="var(--blush-900)" />
-                  <span style={{
-                    fontSize: 11, letterSpacing: '0.1em',
-                    textTransform: 'uppercase', color: 'var(--blush-900)', fontWeight: 500,
-                  }}>
-                    {template.category}
-                  </span>
-                </div>
-                <div style={{ padding: '16px 20px' }}>
-                  <h4 style={{
-                    fontFamily: 'var(--font-serif)', fontSize: 16, fontWeight: 600,
-                    color: 'var(--blush-900)', marginBottom: 6,
-                  }}>
-                    {template.name}
-                  </h4>
-                  <p style={{ fontSize: 13, color: 'var(--blush-600)', lineHeight: 1.5, marginBottom: 16 }}>
-                    {template.description}
-                  </p>
-                  <button
-                    onClick={() => handleUseTemplate(template.id)}
-                    disabled={creating === template.id}
-                    className="btn btn-primary btn-sm"
-                    style={{ width: '100%' }}
+                  transition: 'background-color 0.2s',
+                }}
+                className="group-hover:bg-[#e7e2da]"
+              >
+                 <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#173124', marginBottom: 8 }}>add</span>
+                 <span style={{ fontFamily: 'var(--font-hanken)', fontSize: 13, fontWeight: 600, color: '#173124' }}>
+                   {creating === 'blank' ? 'Creating...' : 'Create Custom'}
+                 </span>
+              </div>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-playfair)', fontSize: 16, fontWeight: 500, color: '#173124' }}>Blank Canvas</h3>
+                <p style={{ fontFamily: 'var(--font-hanken)', fontSize: 13, color: '#424844', marginTop: 4 }}>Start from scratch</p>
+              </div>
+            </div>
+
+            {filtered.map((tmpl, idx) => (
+              <div key={tmpl.thumbnail || idx} className="group" style={{ cursor: 'pointer' }}>
+                {/* Image wrapper */}
+                <Link href={`/templates/${tmpl.id}`} style={{ display: 'block', textDecoration: 'none' }}>
+                  <div
+                    style={{
+                      position: 'relative',
+                      aspectRatio: '1.25',
+                      overflow: 'hidden',
+                      backgroundColor: '#f3ede5',
+                      border: '1px solid rgba(194,200,194,0.4)',
+                      borderRadius: 4,
+                      padding: 8,
+                      marginBottom: 16,
+                    }}
                   >
-                    {creating === template.id ? 'Creating...' : 'Use Template'}
-                    <ArrowRight size={14} />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 8,
+                        border: '1px solid rgba(194,200,194,0.2)',
+                        pointerEvents: 'none',
+                        zIndex: 2,
+                      }}
+                    />
+                    <img
+                      src={tmpl.thumbnail || FALLBACK[idx % FALLBACK.length]}
+                      alt={tmpl.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: 2,
+                        transition: 'transform 0.6s ease',
+                      }}
+                      className="group-hover:scale-[1.04]"
+                    />
+                    {/* Hover overlay */}
+                    <div
+                      className="group-hover:opacity-100"
+                      style={{
+                        position: 'absolute',
+                        inset: 8,
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 60%)',
+                        opacity: 0,
+                        transition: 'opacity 0.3s',
+                        borderRadius: 2,
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        padding: 12,
+                        zIndex: 3,
+                      }}
+                    >
+                      <span style={{ fontFamily: 'var(--font-hanken)', fontSize: 13, color: '#fff', fontWeight: 500 }}>View Details</span>
+                    </div>
+                  </div>
+
+                  {/* Info row */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                    <div style={{ minWidth: 0, flex: 1, marginRight: 8 }}>
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-playfair)',
+                          fontSize: 18,
+                          fontWeight: 500,
+                          color: '#173124',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {tmpl.name}
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-hanken)', fontSize: 13, color: '#424844', marginTop: 2, textTransform: 'capitalize' }}>
+                        {tmpl.category?.replace(/_/g, ' ') || 'Classic Cover'}
+                      </p>
+                    </div>
+                    {(tmpl as any).price && (
+                      <span style={{ fontFamily: 'var(--font-hanken)', fontWeight: 600, fontSize: 14, color: '#173124', flexShrink: 0 }}>
+                        ₹{(tmpl as any).price}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <Link
+                    href={`/templates/${tmpl.id}`}
+                    style={{
+                      flex: 1,
+                      textAlign: 'center',
+                      fontFamily: 'var(--font-hanken)',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      padding: '9px 12px',
+                      border: '1px solid rgba(194,200,194,0.6)',
+                      borderRadius: 3,
+                      color: '#424844',
+                      textDecoration: 'none',
+                      transition: 'border-color 0.15s, color 0.15s',
+                    }}
+                  >
+                    View Details
+                  </Link>
+                  <button
+                    onClick={() => handleUseTemplate(tmpl.id)}
+                    disabled={!!creating}
+                    style={{
+                      flex: 1,
+                      fontFamily: 'var(--font-hanken)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      padding: '9px 12px',
+                      backgroundColor: '#173124',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 3,
+                      cursor: creating ? 'not-allowed' : 'pointer',
+                      opacity: creating ? 0.6 : 1,
+                    }}
+                  >
+                    {creating === tmpl.id ? 'Starting...' : 'Use This'}
                   </button>
                 </div>
-              </motion.div>
-            ))
-          )}
-        </div>
-      </div>
-    </>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      <Footer />
+    </div>
   );
 }
+
