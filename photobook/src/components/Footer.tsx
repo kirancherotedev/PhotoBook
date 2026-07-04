@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 
+<<<<<<< Updated upstream
 function SunMark({ size = 22, color = '#fcf9f8' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -12,6 +13,9 @@ function SunMark({ size = 22, color = '#fcf9f8' }: { size?: number; color?: stri
     </svg>
   );
 }
+=======
+
+>>>>>>> Stashed changes
 
 export default function Footer() {
   return (
@@ -28,11 +32,14 @@ export default function Footer() {
           padding: '72px 24px 40px',
         }}
       >
+<<<<<<< Updated upstream
         {/* Sun mark anchor */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
           <SunMark />
         </div>
 
+=======
+>>>>>>> Stashed changes
         {/* Grid: responsive 1 → 2 → 4 col */}
         <div
           style={{

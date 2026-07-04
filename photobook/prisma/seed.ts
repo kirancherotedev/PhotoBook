@@ -247,46 +247,232 @@ async function main() {
   });
   console.log('✓ Demo customer created:', customer.email);
 
-  // Create templates
-  const templates = [
-    {
-      name: 'Romantic Wedding',
-      description: 'An elegant, minimal design for your most precious day. Blush tones and serif typography create a timeless keepsake.',
-      category: 'wedding',
-      designData: JSON.stringify(createWeddingTemplate()),
-      isFeatured: true,
-      createdById: admin.id,
-    },
-    {
-      name: 'Wanderlust Journal',
-      description: 'Document your travels with this earthy, editorial layout. Clean lines and generous whitespace let your photos breathe.',
-      category: 'travel',
-      designData: JSON.stringify(createTravelTemplate()),
-      isFeatured: true,
-      createdById: admin.id,
-    },
-    {
-      name: "Baby's First Year",
-      description: 'Capture every milestone in soft, warm tones. Designed for parents who want something more refined than a scrapbook.',
-      category: 'baby',
-      designData: JSON.stringify(createBabyTemplate()),
-      isFeatured: true,
-      createdById: admin.id,
-    },
-    {
-      name: 'Creative Portfolio',
-      description: 'A large-format, gallery-style book for photographers, artists, and designers. Glossy paper, wide margins, minimal distraction.',
-      category: 'portfolio',
-      designData: JSON.stringify(createPortfolioTemplate()),
-      isFeatured: false,
-      createdById: admin.id,
-    },
+  // Clear existing templates and pricing rules to allow re-seeding
+  await prisma.template.deleteMany({});
+  await prisma.pricingRule.deleteMany({});
+
+  const PRODUCT_IMAGES = [
+    "Best Moments.png",
+    "Little Joys.png",
+    "Mini PhotoBook.png",
+    "Our Story.png",
+    "Picture Perfect.png",
+    "You & Me  Timeless.png"
   ];
+
+  const photobookCoversRegistry = [
+    {
+      "fileName": "You & Me  Timeless.png",
+      "templateId": "single_image_timeless",
+      "canvas": { "width": 1200, "height": 1200 },
+      "textBoxes": [
+        { "id": "category", "x": 450, "y": 200, "width": 300, "height": 40 },
+        { "id": "title", "x": 200, "y": 250, "width": 800, "height": 120 },
+        { "id": "footer", "x": 300, "y": 950, "width": 600, "height": 40 }
+      ],
+      "imageBoxes": [
+        { "id": "photo1", "x": 250, "y": 400, "width": 700, "height": 480 }
+      ]
+    },
+    {
+      "fileName": "Best Moments.png",
+      "templateId": "five_image_asymmetrical",
+      "canvas": { "width": 1200, "height": 1200 },
+      "textBoxes": [
+        { "id": "category", "x": 450, "y": 150, "width": 300, "height": 30 },
+        { "id": "title", "x": 200, "y": 200, "width": 800, "height": 90 },
+        { "id": "subtitle", "x": 300, "y": 300, "width": 600, "height": 30 },
+        { "id": "footer", "x": 300, "y": 1020, "width": 600, "height": 40 }
+      ],
+      "imageBoxes": [
+        { "id": "photo1", "x": 120, "y": 360, "width": 630, "height": 300 },
+        { "id": "photo2", "x": 770, "y": 360, "width": 310, "height": 300 },
+        { "id": "photo3", "x": 120, "y": 680, "width": 310, "height": 300 },
+        { "id": "photo4", "x": 450, "y": 680, "width": 300, "height": 300 },
+        { "id": "photo5", "x": 770, "y": 680, "width": 310, "height": 300 }
+      ]
+    },
+    {
+      "fileName": "Little Joys.png",
+      "templateId": "nine_image_grid_v2",
+      "canvas": { "width": 1200, "height": 1200 },
+      "textBoxes": [
+        { "id": "category", "x": 400, "y": 100, "width": 400, "height": 30 },
+        { "id": "title", "x": 200, "y": 150, "width": 800, "height": 90 },
+        { "id": "subtitle", "x": 300, "y": 250, "width": 600, "height": 40 },
+        { "id": "footer", "x": 300, "y": 1030, "width": 600, "height": 40 }
+      ],
+      "imageBoxes": [
+        { "id": "photo1", "x": 120, "y": 320, "width": 306, "height": 210 },
+        { "id": "photo2", "x": 446, "y": 320, "width": 308, "height": 210 },
+        { "id": "photo3", "x": 774, "y": 320, "width": 306, "height": 210 },
+        { "id": "photo4", "x": 120, "y": 550, "width": 306, "height": 210 },
+        { "id": "photo5", "x": 446, "y": 550, "width": 308, "height": 210 },
+        { "id": "photo6", "x": 774, "y": 550, "width": 306, "height": 210 },
+        { "id": "photo7", "x": 120, "y": 780, "width": 306, "height": 210 },
+        { "id": "photo8", "x": 446, "y": 780, "width": 308, "height": 210 },
+        { "id": "photo9", "x": 774, "y": 780, "width": 306, "height": 210 }
+      ]
+    },
+    {
+      "fileName": "Mini PhotoBook.png",
+      "templateId": "single_image_timeless",
+      "canvas": { "width": 1200, "height": 1200 },
+      "textBoxes": [
+        { "id": "category", "x": 450, "y": 200, "width": 300, "height": 40 },
+        { "id": "title", "x": 200, "y": 250, "width": 800, "height": 120 },
+        { "id": "footer", "x": 300, "y": 950, "width": 600, "height": 40 }
+      ],
+      "imageBoxes": [
+        { "id": "photo1", "x": 250, "y": 400, "width": 700, "height": 480 }
+      ]
+    },
+    {
+      "fileName": "Our Story.png",
+      "templateId": "six_image_grid",
+      "canvas": { "width": 1200, "height": 1200 },
+      "textBoxes": [
+        { "id": "category", "x": 450, "y": 150, "width": 300, "height": 30 },
+        { "id": "title", "x": 200, "y": 200, "width": 800, "height": 90 },
+        { "id": "subtitle", "x": 300, "y": 300, "width": 600, "height": 30 },
+        { "id": "footer", "x": 300, "y": 1020, "width": 600, "height": 40 }
+      ],
+      "imageBoxes": [
+        { "id": "photo1", "x": 120, "y": 360, "width": 306, "height": 300 },
+        { "id": "photo2", "x": 446, "y": 360, "width": 308, "height": 300 },
+        { "id": "photo3", "x": 774, "y": 360, "width": 306, "height": 300 },
+        { "id": "photo4", "x": 120, "y": 680, "width": 306, "height": 300 },
+        { "id": "photo5", "x": 446, "y": 680, "width": 308, "height": 300 },
+        { "id": "photo6", "x": 774, "y": 680, "width": 306, "height": 300 }
+      ]
+    },
+    {
+      "fileName": "Picture Perfect.png",
+      "templateId": "nine_image_masonry",
+      "canvas": { "width": 1200, "height": 1200 },
+      "textBoxes": [
+        { "id": "category", "x": 400, "y": 100, "width": 400, "height": 30 },
+        { "id": "title", "x": 200, "y": 150, "width": 800, "height": 90 },
+        { "id": "subtitle", "x": 300, "y": 250, "width": 600, "height": 40 },
+        { "id": "footer", "x": 300, "y": 1050, "width": 600, "height": 40 }
+      ],
+      "imageBoxes": [
+        { "id": "photo1", "x": 120, "y": 320, "width": 340, "height": 220 },
+        { "id": "photo2", "x": 470, "y": 320, "width": 270, "height": 220 },
+        { "id": "photo3", "x": 750, "y": 320, "width": 330, "height": 220 },
+        { "id": "photo4", "x": 120, "y": 550, "width": 270, "height": 220 },
+        { "id": "photo5", "x": 400, "y": 550, "width": 400, "height": 220 },
+        { "id": "photo6", "x": 810, "y": 550, "width": 270, "height": 220 },
+        { "id": "photo7", "x": 120, "y": 780, "width": 340, "height": 220 },
+        { "id": "photo8", "x": 470, "y": 780, "width": 270, "height": 220 },
+        { "id": "photo9", "x": 750, "y": 780, "width": 330, "height": 220 }
+      ]
+    }
+  ];
+
+  function createRegistryTemplate(name: string, filename: string) {
+    const registryEntry = photobookCoversRegistry.find(r => r.fileName === filename);
+    const data = createDefaultDesignData(20);
+    
+    // Scale down from 1200 to our editor default canvas (480x480).
+    const scale = 480 / 1200;
+    
+    data.pages[0].background = { type: 'color', value: '#F5F0EB' }; // generic warm color
+    data.pages[0].elements = [];
+    
+    if (registryEntry) {
+      let zIdx = 1;
+      // Map text boxes
+      for (const tbox of registryEntry.textBoxes) {
+        let content = name;
+        let fontSize = 32;
+        let fontFamily = 'Playfair Display';
+        let color = '#86636A';
+        
+        if (tbox.id === 'category') { content = 'CATEGORY'; fontSize = 24; fontFamily = 'Inter'; color = '#888888'; }
+        if (tbox.id === 'title') { content = name.toUpperCase(); fontSize = 64; fontFamily = 'Playfair Display'; color = '#111111'; }
+        if (tbox.id === 'subtitle') { content = 'A beautiful journey together'; fontSize = 28; fontFamily = 'Inter'; color = '#666666'; }
+        if (tbox.id === 'footer') { content = 'Our favorite moments'; fontSize = 20; fontFamily = 'Inter'; color = '#888888'; }
+
+        data.pages[0].elements.push({
+          id: uuid(),
+          type: 'text',
+          x: tbox.x * scale,
+          y: tbox.y * scale,
+          width: tbox.width * scale,
+          height: tbox.height * scale,
+          rotation: 0,
+          zIndex: zIdx++,
+          properties: {
+            content,
+            fontFamily,
+            fontSize: fontSize * scale,
+            color,
+            textAlign: 'center',
+            fontWeight: '600'
+          }
+        });
+      }
+      
+      // Map image boxes
+      for (const ibox of registryEntry.imageBoxes) {
+        data.pages[0].elements.push({
+          id: uuid(),
+          type: 'image',
+          x: ibox.x * scale,
+          y: ibox.y * scale,
+          width: ibox.width * scale,
+          height: ibox.height * scale,
+          rotation: 0,
+          zIndex: zIdx++,
+          properties: {
+            src: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==', // 1x1 grey pixel
+          }
+        });
+      }
+    } else {
+      // Fallback
+      data.pages[0].elements = [
+        {
+          id: uuid(), type: 'image', x: 100, y: 100, width: 400, height: 400, rotation: 0, zIndex: 1,
+          properties: { src: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==' }
+        },
+        {
+          id: uuid(), type: 'text', x: 100, y: 530, width: 400, height: 60, rotation: 0, zIndex: 2,
+          properties: { content: name, fontFamily: 'Playfair Display', fontSize: 32, color: '#86636A', textAlign: 'center', fontWeight: '600' }
+        }
+      ];
+    }
+    
+    // cast to any to bypass strict type matching on properties if needed
+    data.pages[0].elements = data.pages[0].elements as any;
+    return data;
+  }
+
+  // Generate templates from product images
+  const templates = PRODUCT_IMAGES.map((filename) => {
+    // Strip numbers at start and .png at end
+    const rawName = filename.replace(/^\d+/, '').replace(/\.png$/, '').trim();
+    // Use rawName if it exists, otherwise filename
+    const name = rawName || filename;
+    
+    const designDataObj = createRegistryTemplate(name, filename);
+    
+    return {
+      name,
+      description: `Preset template for ${name}`,
+      category: 'photobook',
+      designData: JSON.stringify(designDataObj),
+      isFeatured: true,
+      thumbnail: `/products/${filename}`,
+      createdById: admin.id,
+    };
+  });
 
   for (const t of templates) {
     await prisma.template.create({ data: t });
   }
-  console.log('✓ 4 templates created');
+  console.log(`✓ ${templates.length} preset templates created`);
 
   // Create pricing rules
   const pricingRules = [
@@ -312,8 +498,10 @@ async function main() {
   console.log('✓ Pricing rules created');
 
   // Create a promo code
-  await prisma.promoCode.create({
-    data: {
+  await prisma.promoCode.upsert({
+    where: { code: 'WELCOME20' },
+    update: {},
+    create: {
       code: 'WELCOME20',
       description: '20% off your first order',
       discountType: 'percentage',

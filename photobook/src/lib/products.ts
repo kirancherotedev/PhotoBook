@@ -1,4 +1,5 @@
 export const PRODUCT_IMAGES = [
+<<<<<<< Updated upstream
   "10Story of Us.png",
   "11Best Moments.png",
   "11Dear Moments.png",
@@ -26,6 +27,14 @@ export const PRODUCT_IMAGES = [
   "7Relationship & Family.png",
   "8You & Me.png",
   "9Our Story.png"
+=======
+  "Best Moments.png",
+  "Little Joys.png",
+  "Mini PhotoBook.png",
+  "Our Story.png",
+  "Picture Perfect.png",
+  "You & Me  Timeless.png"
+>>>>>>> Stashed changes
 ].map(f => `/products/${f}`);
 
 export const formatProductName = (filepath: string) => {

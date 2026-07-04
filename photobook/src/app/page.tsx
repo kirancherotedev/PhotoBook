@@ -10,9 +10,14 @@ import Footer from '@/components/Footer';
 import { PRODUCT_IMAGES, formatProductName } from '@/lib/products';
 
 const PHOTOS = [
+<<<<<<< Updated upstream
   '/products/4You & Me  Timeless.png',
   '/products/10Story of Us.png',
   '/products/8You & Me.png',
+=======
+  '/products/You & Me  Timeless.png',
+  '/products/Our Story.png',
+>>>>>>> Stashed changes
 ];
 
 /* ── Taikiru design-system palette ── */
@@ -33,6 +38,7 @@ const COLOR = {
   onSecondaryContainer: '#65655c',
 };
 
+<<<<<<< Updated upstream
 /* ── Sun-ray mark ── */
 function SunMark({ size = 20, color = COLOR.primary }: { size?: number; color?: string }) {
   return (
@@ -44,6 +50,9 @@ function SunMark({ size = 20, color = COLOR.primary }: { size?: number; color?: 
     </svg>
   );
 }
+=======
+
+>>>>>>> Stashed changes
 
 /* ── Sample "polaroid" slots for the customizer showcase ──
    These are placeholder gradients standing in for a customer's own
@@ -63,6 +72,7 @@ export default function HomePage() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [defaultTemplateId, setDefaultTemplateId] = useState<string>('');
+<<<<<<< Updated upstream
 
   useEffect(() => {
     fetch('/api/templates')
@@ -199,6 +209,173 @@ export default function HomePage() {
     { name: 'You & Me',  sub: 'Romantic & Soft',    img: PHOTOS[1], span: 'md:col-span-5', aspect: 'aspect-[1.1]' },
   ];
 
+=======
+  const [dbTemplates, setDbTemplates] = useState<Array<{id:string; name:string; thumbnail:string|null}>>([]);
+  const [polaroidIndex, setPolaroidIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPolaroidIndex(prev => (prev + 1) % POLAROIDS.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/templates')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data.length > 0) {
+          setDefaultTemplateId(d.data[0].id);
+          setDbTemplates(d.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const getTemplateId = (imgUrl: string) => {
+    const match = dbTemplates.find(dbT => dbT.thumbnail === imgUrl);
+    return match ? match.id : defaultTemplateId;
+  };
+
+  /* ── Intersection Observer (scroll fade-in) ── */
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.fade-in-up').forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  /* ── Image sequence background ── */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const syncSize = () => {
+      const el = canvas.parentElement ?? canvas;
+      if (canvas.width !== el.clientWidth) canvas.width = el.clientWidth;
+      if (canvas.height !== el.clientHeight) canvas.height = el.clientHeight;
+    };
+    const ro = new ResizeObserver(syncSize);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
+    syncSize();
+
+    let raf: number;
+    let isActive = true;
+
+    fetch('/frames.json')
+      .then(r => r.json())
+      .then((frameFiles: string[]) => {
+        if (!isActive) return;
+        const frameCount = frameFiles.length;
+        const images: HTMLImageElement[] = [];
+        let loadedCount = 0;
+
+        frameFiles.forEach(file => {
+          const img = new Image();
+          img.src = `/hero-frames/${file}`;
+          img.onload = () => loadedCount++;
+          images.push(img);
+        });
+
+        let frameIndex = 0;
+        let lastTime = 0;
+        const fps = 30;
+        const frameInterval = 1000 / fps;
+
+        const draw = (time: number) => {
+          raf = requestAnimationFrame(draw);
+          if (!lastTime) lastTime = time;
+
+          const deltaTime = time - lastTime;
+          let frameProgress = deltaTime / frameInterval;
+
+          if (deltaTime >= frameInterval) {
+            lastTime = time - (deltaTime % frameInterval);
+            frameIndex = (frameIndex + 1) % frameCount;
+            frameProgress = 0;
+          }
+
+          if (loadedCount > 0 && images[frameIndex]?.complete && images[frameIndex]?.naturalWidth > 0) {
+            const img = images[frameIndex];
+            const nextImg = images[(frameIndex + 1) % frameCount];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            const drawImg = (image: HTMLImageElement, alpha: number) => {
+              if (!image || !image.complete) return;
+              const canvasRatio = canvas.width / canvas.height;
+              const imgRatio = image.width / image.height;
+              let drawWidth = canvas.width;
+              let drawHeight = canvas.height;
+              let offsetX = 0;
+              let offsetY = 0;
+
+              if (canvasRatio > imgRatio) {
+                drawHeight = canvas.width / imgRatio;
+                offsetY = (canvas.height - drawHeight) / 2;
+              } else {
+                drawWidth = canvas.height * imgRatio;
+                offsetX = (canvas.width - drawWidth) / 2;
+              }
+
+              ctx.globalAlpha = alpha;
+              ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+            };
+
+            // Draw current frame
+            drawImg(img, 1);
+            // Draw next frame faded in
+            if (nextImg) {
+              drawImg(nextImg, frameProgress * 0.5);
+            }
+            ctx.globalAlpha = 1;
+          }
+        };
+
+        raf = requestAnimationFrame(draw);
+      })
+      .catch(err => console.error('Failed to load frames.json', err));
+
+    return () => {
+      isActive = false;
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  const go = (path: string) => {
+    if (path.startsWith('/templates')) {
+      router.push(path);
+      return;
+    }
+    if (!isAuthenticated) { router.push(`/login?redirect=${path}`); return; }
+    router.push(path);
+  };
+
+
+  const THEMES = [
+    { name: 'Timeless', sub: 'Editorial & Classic', img: PHOTOS[0] },
+    { name: 'You & Me', sub: 'Romantic & Soft',     img: PHOTOS[1] },
+  ];
+
+  const productColorsList = [
+    ['#ffffff'],
+    ['#e5e3d7', '#434f38', '#dae7c8', '#f0eded'],
+    ['#5b674e'],
+    ['#dae7c8', '#1b1c1c', '#434f38', '#c5c7bd', '#f0eded'],
+    ['#dae7c8', '#ba1a1a', '#9eb4cc'],
+    ['#ffffff', '#f0eded', '#1b1c1c'],
+  ];
+  const productSizes = ['Medium Photobook', 'Mini PhotoBook', 'Large Photobook', 'Medium Photobook', 'Medium Photobook', 'Large Photobook'];
+
+
+>>>>>>> Stashed changes
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: COLOR.surface, color: COLOR.onSurface }}>
       <Navbar />
@@ -243,7 +420,10 @@ export default function HomePage() {
               marginBottom: 24,
             }}
           >
+<<<<<<< Updated upstream
             <SunMark size={12} />
+=======
+>>>>>>> Stashed changes
             Heirloom Quality
           </span>
 
@@ -436,13 +616,25 @@ export default function HomePage() {
             </p>
           </div>
 
+<<<<<<< Updated upstream
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up">
+=======
+          {/* 2 Large Hero Theme Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up" style={{ marginBottom: 48 }}>
+>>>>>>> Stashed changes
             {THEMES.map((t) => (
               <div
                 key={t.name}
                 className="group cursor-pointer"
+<<<<<<< Updated upstream
                 onClick={() => router.push(defaultTemplateId ? `/templates/${defaultTemplateId}?name=${encodeURIComponent(t.name)}&img=${encodeURIComponent(t.img)}` : '/templates')}
+=======
+                onClick={() => {
+                  const fileName = t.img.split('/').pop() || '';
+                  router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
+                }}
+>>>>>>> Stashed changes
               >
                 <div
                   className="relative overflow-hidden aspect-[1.25] mb-4 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
@@ -471,6 +663,7 @@ export default function HomePage() {
             ))}
           </div>
 
+<<<<<<< Updated upstream
           {/* Product grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12 mt-8">
             {PRODUCT_IMAGES.slice(0, 4).map((img, i) => {
@@ -488,12 +681,28 @@ export default function HomePage() {
                 ['#ffffff', '#f0eded', '#1b1c1c']
               ];
               const colors = colorsList[i % colorsList.length];
+=======
+          {/* 4 Smaller Product Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
+            {PRODUCT_IMAGES.filter(img => !PHOTOS.includes(img)).slice(0, 4).map((img, i) => {
+              const size = productSizes[i % productSizes.length];
+              const price = size === 'Mini PhotoBook' ? '1,599' : size === 'Medium Photobook' ? '1,799' : '1,999';
+              const oldPrice = size === 'Mini PhotoBook' ? '1,799' : size === 'Medium Photobook' ? '2,099' : '2,299';
+              const colors = productColorsList[i % productColorsList.length];
+>>>>>>> Stashed changes
 
               return (
                 <div
                   key={img}
                   className="group cursor-pointer fade-in-up"
+<<<<<<< Updated upstream
                   onClick={() => router.push(defaultTemplateId ? `/templates/${defaultTemplateId}?name=${encodeURIComponent(formatProductName(img))}&img=${encodeURIComponent(img)}` : '/templates')}
+=======
+                  onClick={() => {
+                    const fileName = img.split('/').pop() || '';
+                    router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
+                  }}
+>>>>>>> Stashed changes
                 >
                   {/* Image Container */}
                   <div
@@ -887,14 +1096,24 @@ export default function HomePage() {
           {/* Image stack */}
           <div style={{ position: 'relative', width: '100%', aspectRatio: '1', maxWidth: 500, margin: '0 auto' }}>
             <img
+<<<<<<< Updated upstream
               src="/products/2Medium Photobook.png"
+=======
+              src="/products/Our Story.png"
+>>>>>>> Stashed changes
               alt="Medium Photobook"
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4rem 0.5rem 0.5rem 0.5rem', boxShadow: '0 4px 30px rgba(0,0,0,0.06)' }}
             />
             <img
+<<<<<<< Updated upstream
               className="hidden md:block"
               src="/products/3Large Photobook.png"
               alt="Large Photobook"
+=======
+              className="hidden md:block transition-all duration-700"
+              src={POLAROIDS[polaroidIndex].image}
+              alt="Polaroid Preview"
+>>>>>>> Stashed changes
               style={{
                 position: 'absolute',
                 bottom: -40,
@@ -946,9 +1165,12 @@ export default function HomePage() {
       <section style={{ padding: '80px 0', backgroundColor: COLOR.surfaceContainerLow }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
           <div className="fade-in-up" style={{ textAlign: 'center', marginBottom: 56 }}>
+<<<<<<< Updated upstream
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
               <SunMark size={30} color={COLOR.outline} />
             </div>
+=======
+>>>>>>> Stashed changes
             <h2
               style={{
                 fontFamily: 'var(--font-playfair)',

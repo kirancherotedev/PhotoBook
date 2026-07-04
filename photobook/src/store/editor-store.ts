@@ -11,6 +11,13 @@ interface EditorState {
   isDirty: boolean;
   isSaving: boolean;
   lastSaved: Date | null;
+<<<<<<< Updated upstream
+=======
+  
+  // History
+  history: DesignData[];
+  historyIndex: number;
+>>>>>>> Stashed changes
 
   // Actions
   setProject: (id: string, name: string, data: DesignData) => void;
@@ -18,6 +25,13 @@ interface EditorState {
   setCurrentPage: (index: number) => void;
   selectElement: (id: string | null) => void;
 
+<<<<<<< Updated upstream
+=======
+  // Undo/Redo
+  undo: () => void;
+  redo: () => void;
+
+>>>>>>> Stashed changes
   // Design data mutations
   updateBookConfig: (config: Partial<DesignData['bookConfig']>) => void;
   addPage: () => void;
@@ -40,6 +54,16 @@ const defaultDesignData: DesignData = {
   pages: [],
 };
 
+const pushHistory = (state: EditorState, newDesignData: DesignData) => {
+  const newHistory = state.history.slice(0, state.historyIndex + 1);
+  newHistory.push(newDesignData);
+  if (newHistory.length > 50) newHistory.shift();
+  return {
+    history: newHistory,
+    historyIndex: newHistory.length - 1,
+  };
+};
+
 export const useEditorStore = create<EditorState>((set, get) => ({
   projectId: null,
   projectName: 'Untitled Book',
@@ -49,6 +73,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   isDirty: false,
   isSaving: false,
   lastSaved: null,
+<<<<<<< Updated upstream
+=======
+  history: [defaultDesignData],
+  historyIndex: 0,
+>>>>>>> Stashed changes
 
   setProject: (id, name, data) => set({
     projectId: id,
@@ -57,6 +86,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     currentPageIndex: 0,
     selectedElementId: null,
     isDirty: false,
+<<<<<<< Updated upstream
+=======
+    history: [data],
+    historyIndex: 0,
+>>>>>>> Stashed changes
   }),
 
   setProjectName: (name) => set({ projectName: name, isDirty: true }),
@@ -64,6 +98,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setCurrentPage: (index) => set({ currentPageIndex: index, selectedElementId: null }),
   selectElement: (id) => set({ selectedElementId: id }),
 
+<<<<<<< Updated upstream
   updateBookConfig: (config) => set((state) => ({
     designData: {
       ...state.designData,
@@ -71,6 +106,39 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     },
     isDirty: true,
   })),
+=======
+  undo: () => set((state) => {
+    if (state.historyIndex > 0) {
+      const newIndex = state.historyIndex - 1;
+      return {
+        designData: state.history[newIndex],
+        historyIndex: newIndex,
+        isDirty: true,
+      };
+    }
+    return state;
+  }),
+
+  redo: () => set((state) => {
+    if (state.historyIndex < state.history.length - 1) {
+      const newIndex = state.historyIndex + 1;
+      return {
+        designData: state.history[newIndex],
+        historyIndex: newIndex,
+        isDirty: true,
+      };
+    }
+    return state;
+  }),
+
+  updateBookConfig: (config) => set((state) => {
+    const newData = {
+      ...state.designData,
+      bookConfig: { ...state.designData.bookConfig, ...config },
+    };
+    return { designData: newData, isDirty: true, ...pushHistory(state, newData) };
+  }),
+>>>>>>> Stashed changes
 
   addPage: () => set((state) => {
     const newPage: BookPage = {
@@ -87,6 +155,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     } else {
       pages.push(newPage);
     }
+<<<<<<< Updated upstream
     return {
       designData: {
         ...state.designData,
@@ -139,6 +208,62 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   updateElement: (pageId, elementId, updates) => set((state) => ({
     designData: {
+=======
+    const newData = {
+      ...state.designData,
+      bookConfig: { ...state.designData.bookConfig, pageCount: state.designData.bookConfig.pageCount + 1 },
+      pages,
+    };
+    return { designData: newData, isDirty: true, ...pushHistory(state, newData) };
+  }),
+
+  removePage: (pageId) => set((state) => {
+    const page = state.designData.pages.find(p => p.id === pageId);
+    if (!page || page.type !== 'content') return state; // Can't remove covers
+    const newData = {
+      ...state.designData,
+      bookConfig: { ...state.designData.bookConfig, pageCount: Math.max(1, state.designData.bookConfig.pageCount - 1) },
+      pages: state.designData.pages.filter(p => p.id !== pageId),
+    };
+    return {
+      designData: newData,
+      currentPageIndex: Math.min(state.currentPageIndex, newData.pages.length - 2),
+      isDirty: true,
+      ...pushHistory(state, newData)
+    };
+  }),
+
+  updatePageBackground: (pageId, bg) => set((state) => {
+    const newData = {
+      ...state.designData,
+      pages: state.designData.pages.map(p =>
+        p.id === pageId ? { ...p, background: bg } : p
+      ),
+    };
+    return { designData: newData, isDirty: true, ...pushHistory(state, newData) };
+  }),
+
+  addElement: (pageId, element) => set((state) => {
+    const newElement: PageElement = { ...element, id: uuid() };
+    const newData = {
+      ...state.designData,
+      pages: state.designData.pages.map(p =>
+        p.id === pageId
+          ? { ...p, elements: [...p.elements, newElement] }
+          : p
+      ),
+    };
+    return {
+      designData: newData,
+      selectedElementId: newElement.id,
+      isDirty: true,
+      ...pushHistory(state, newData)
+    };
+  }),
+
+  updateElement: (pageId, elementId, updates) => set((state) => {
+    const newData = {
+>>>>>>> Stashed changes
       ...state.designData,
       pages: state.designData.pages.map(p =>
         p.id === pageId
@@ -150,22 +275,38 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : p
       ),
-    },
-    isDirty: true,
-  })),
+    };
+    return { designData: newData, isDirty: true, ...pushHistory(state, newData) };
+  }),
 
+<<<<<<< Updated upstream
   removeElement: (pageId, elementId) => set((state) => ({
     designData: {
+=======
+  removeElement: (pageId, elementId) => set((state) => {
+    const newData = {
+>>>>>>> Stashed changes
       ...state.designData,
       pages: state.designData.pages.map(p =>
         p.id === pageId
           ? { ...p, elements: p.elements.filter(el => el.id !== elementId) }
           : p
       ),
+<<<<<<< Updated upstream
     },
     selectedElementId: state.selectedElementId === elementId ? null : state.selectedElementId,
     isDirty: true,
   })),
+=======
+    };
+    return {
+      designData: newData,
+      selectedElementId: state.selectedElementId === elementId ? null : state.selectedElementId,
+      isDirty: true,
+      ...pushHistory(state, newData)
+    };
+  }),
+>>>>>>> Stashed changes
 
   moveElement: (pageId, elementId, x, y) => {
     const state = get();

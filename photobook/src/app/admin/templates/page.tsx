@@ -110,11 +110,22 @@ export default function AdminTemplatesPage() {
                 aspectRatio: '16/9', background: 'var(--blush-200)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexDirection: 'column', gap: 6, position: 'relative',
+                overflow: 'hidden',
               }}>
-                <BookOpen size={24} color="var(--blush-900)" />
-                <span style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--blush-900)', fontWeight: 500 }}>
-                  {t.category}
-                </span>
+                {(t as any).thumbnail ? (
+                  <img
+                    src={(t as any).thumbnail}
+                    alt={t.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <>
+                    <BookOpen size={24} color="var(--blush-900)" />
+                    <span style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--blush-900)', fontWeight: 500 }}>
+                      {t.category}
+                    </span>
+                  </>
+                )}
                 {t.isFeatured && (
                   <div style={{
                     position: 'absolute', top: 8, right: 8,
