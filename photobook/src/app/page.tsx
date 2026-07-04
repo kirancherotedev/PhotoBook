@@ -10,9 +10,8 @@ import Footer from '@/components/Footer';
 import { PRODUCT_IMAGES, formatProductName } from '@/lib/products';
 
 const PHOTOS = [
-  '/products/4You & Me  Timeless.png',
-  '/products/10Story of Us.png',
-  '/products/8You & Me.png',
+  '/products/You & Me  Timeless.png',
+  '/products/Our Story.png',
 ];
 
 /* ── Taikiru design-system palette ── */
@@ -33,17 +32,7 @@ const COLOR = {
   onSecondaryContainer: '#65655c',
 };
 
-/* ── Sun-ray mark ── */
-function SunMark({ size = 20, color = COLOR.primary }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 0 L13.8 9.2 L23 8 L14.6 12 L23 16 L13.8 14.8 L12 24 L10.2 14.8 L1 16 L9.4 12 L1 8 L10.2 9.2 Z"
-        fill={color}
-      />
-    </svg>
-  );
-}
+
 
 /* ── Sample "polaroid" slots for the customizer showcase ──
    These are placeholder gradients standing in for a customer's own
@@ -63,15 +52,32 @@ export default function HomePage() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [defaultTemplateId, setDefaultTemplateId] = useState<string>('');
+  const [dbTemplates, setDbTemplates] = useState<Array<{id:string; name:string; thumbnail:string|null}>>([]);
+  const [polaroidIndex, setPolaroidIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPolaroidIndex(prev => (prev + 1) % POLAROIDS.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     fetch('/api/templates')
       .then(r => r.json())
       .then(d => {
-        if (d.success && d.data.length > 0) setDefaultTemplateId(d.data[0].id);
+        if (d.success && d.data.length > 0) {
+          setDefaultTemplateId(d.data[0].id);
+          setDbTemplates(d.data);
+        }
       })
       .catch(() => {});
   }, []);
+
+  const getTemplateId = (imgUrl: string) => {
+    const match = dbTemplates.find(dbT => dbT.thumbnail === imgUrl);
+    return match ? match.id : defaultTemplateId;
+  };
 
   /* ── Intersection Observer (scroll fade-in) ── */
   useEffect(() => {
@@ -194,10 +200,22 @@ export default function HomePage() {
     router.push(path);
   };
 
+
   const THEMES = [
-    { name: 'Timeless', sub: 'Editorial & Classic', img: PHOTOS[0], span: 'md:col-span-7', aspect: 'aspect-[1.4]' },
-    { name: 'You & Me',  sub: 'Romantic & Soft',    img: PHOTOS[1], span: 'md:col-span-5', aspect: 'aspect-[1.1]' },
+    { name: 'Timeless', sub: 'Editorial & Classic', img: PHOTOS[0] },
+    { name: 'You & Me', sub: 'Romantic & Soft',     img: PHOTOS[1] },
   ];
+
+  const productColorsList = [
+    ['#ffffff'],
+    ['#e5e3d7', '#434f38', '#dae7c8', '#f0eded'],
+    ['#5b674e'],
+    ['#dae7c8', '#1b1c1c', '#434f38', '#c5c7bd', '#f0eded'],
+    ['#dae7c8', '#ba1a1a', '#9eb4cc'],
+    ['#ffffff', '#f0eded', '#1b1c1c'],
+  ];
+  const productSizes = ['Medium Photobook', 'Mini PhotoBook', 'Large Photobook', 'Medium Photobook', 'Medium Photobook', 'Large Photobook'];
+
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: COLOR.surface, color: COLOR.onSurface }}>
@@ -243,7 +261,6 @@ export default function HomePage() {
               marginBottom: 24,
             }}
           >
-            <SunMark size={12} />
             Heirloom Quality
           </span>
 
@@ -436,13 +453,16 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up">
+          {/* 2 Large Hero Theme Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up" style={{ marginBottom: 48 }}>
             {THEMES.map((t) => (
               <div
                 key={t.name}
                 className="group cursor-pointer"
-                onClick={() => router.push(defaultTemplateId ? `/templates/${defaultTemplateId}?name=${encodeURIComponent(t.name)}&img=${encodeURIComponent(t.img)}` : '/templates')}
+                onClick={() => {
+                  const fileName = t.img.split('/').pop() || '';
+                  router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
+                }}
               >
                 <div
                   className="relative overflow-hidden aspect-[1.25] mb-4 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
@@ -471,29 +491,22 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Product grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12 mt-8">
-            {PRODUCT_IMAGES.slice(0, 4).map((img, i) => {
-              const sizes = ["Medium Photobook", "Mini PhotoBook", "Large Photobook", "Medium Photobook", "Medium Photobook", "Large Photobook"];
-              const size = sizes[i % sizes.length];
-              const price = size === "Mini PhotoBook" ? "1,599" : size === "Medium Photobook" ? "1,799" : "1,999";
-              const oldPrice = size === "Mini PhotoBook" ? "1,799" : size === "Medium Photobook" ? "2,099" : "2,299";
-
-              const colorsList = [
-                ['#ffffff'],
-                ['#e5e3d7', '#434f38', '#dae7c8', '#f0eded'],
-                ['#5b674e'],
-                ['#dae7c8', '#1b1c1c', '#434f38', '#c5c7bd', '#f0eded'],
-                ['#dae7c8', '#ba1a1a', '#9eb4cc'],
-                ['#ffffff', '#f0eded', '#1b1c1c']
-              ];
-              const colors = colorsList[i % colorsList.length];
+          {/* 4 Smaller Product Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
+            {PRODUCT_IMAGES.filter(img => !PHOTOS.includes(img)).slice(0, 4).map((img, i) => {
+              const size = productSizes[i % productSizes.length];
+              const price = size === 'Mini PhotoBook' ? '1,599' : size === 'Medium Photobook' ? '1,799' : '1,999';
+              const oldPrice = size === 'Mini PhotoBook' ? '1,799' : size === 'Medium Photobook' ? '2,099' : '2,299';
+              const colors = productColorsList[i % productColorsList.length];
 
               return (
                 <div
                   key={img}
                   className="group cursor-pointer fade-in-up"
-                  onClick={() => router.push(defaultTemplateId ? `/templates/${defaultTemplateId}?name=${encodeURIComponent(formatProductName(img))}&img=${encodeURIComponent(img)}` : '/templates')}
+                  onClick={() => {
+                    const fileName = img.split('/').pop() || '';
+                    router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
+                  }}
                 >
                   {/* Image Container */}
                   <div
@@ -887,14 +900,14 @@ export default function HomePage() {
           {/* Image stack */}
           <div style={{ position: 'relative', width: '100%', aspectRatio: '1', maxWidth: 500, margin: '0 auto' }}>
             <img
-              src="/products/2Medium Photobook.png"
+              src="/products/Our Story.png"
               alt="Medium Photobook"
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4rem 0.5rem 0.5rem 0.5rem', boxShadow: '0 4px 30px rgba(0,0,0,0.06)' }}
             />
             <img
-              className="hidden md:block"
-              src="/products/3Large Photobook.png"
-              alt="Large Photobook"
+              className="hidden md:block transition-all duration-700"
+              src={POLAROIDS[polaroidIndex].image}
+              alt="Polaroid Preview"
               style={{
                 position: 'absolute',
                 bottom: -40,
@@ -946,9 +959,6 @@ export default function HomePage() {
       <section style={{ padding: '80px 0', backgroundColor: COLOR.surfaceContainerLow }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
           <div className="fade-in-up" style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <SunMark size={30} color={COLOR.outline} />
-            </div>
             <h2
               style={{
                 fontFamily: 'var(--font-playfair)',

@@ -5,17 +5,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-/* ── Sun-ray mark (Taikiru-style decorative logo glyph) ── */
-function SunMark({ size = 14, color = '#434f38' }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 0 L13.8 9.2 L23 8 L14.6 12 L23 16 L13.8 14.8 L12 24 L10.2 14.8 L1 16 L9.4 12 L1 8 L10.2 9.2 Z"
-        fill={color}
-      />
-    </svg>
-  );
-}
+
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -103,7 +93,6 @@ export default function Navbar() {
               letterSpacing: '-0.01em',
             }}
           >
-            <SunMark />
             PhotoBook Studio
           </Link>
 

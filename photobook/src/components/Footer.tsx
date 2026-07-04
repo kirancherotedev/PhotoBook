@@ -2,16 +2,7 @@
 
 import Link from 'next/link';
 
-function SunMark({ size = 22, color = '#fcf9f8' }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 0 L13.8 9.2 L23 8 L14.6 12 L23 16 L13.8 14.8 L12 24 L10.2 14.8 L1 16 L9.4 12 L1 8 L10.2 9.2 Z"
-        fill={color}
-      />
-    </svg>
-  );
-}
+
 
 export default function Footer() {
   return (
@@ -28,11 +19,6 @@ export default function Footer() {
           padding: '72px 24px 40px',
         }}
       >
-        {/* Sun mark anchor */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-          <SunMark />
-        </div>
-
         {/* Grid: responsive 1 → 2 → 4 col */}
         <div
           style={{
