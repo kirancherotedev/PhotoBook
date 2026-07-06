@@ -8,11 +8,16 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 import { PRODUCT_IMAGES, formatProductName } from '@/lib/products';
-import { photobookCoversRegistry } from '@/lib/curated-themes';
 
 const PHOTOS = [
+<<<<<<< Updated upstream
+  '/products/4You & Me  Timeless.png',
+  '/products/10Story of Us.png',
+  '/products/8You & Me.png',
+=======
   '/products/You & Me  Timeless.png',
   '/products/Our Story.png',
+>>>>>>> Stashed changes
 ];
 
 /* ── Taikiru design-system palette ── */
@@ -33,7 +38,21 @@ const COLOR = {
   onSecondaryContainer: '#65655c',
 };
 
+<<<<<<< Updated upstream
+/* ── Sun-ray mark ── */
+function SunMark({ size = 20, color = COLOR.primary }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 0 L13.8 9.2 L23 8 L14.6 12 L23 16 L13.8 14.8 L12 24 L10.2 14.8 L1 16 L9.4 12 L1 8 L10.2 9.2 Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
+=======
 
+>>>>>>> Stashed changes
 
 /* ── Sample "polaroid" slots for the customizer showcase ──
    These are placeholder gradients standing in for a customer's own
@@ -53,6 +72,144 @@ export default function HomePage() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [defaultTemplateId, setDefaultTemplateId] = useState<string>('');
+<<<<<<< Updated upstream
+
+  useEffect(() => {
+    fetch('/api/templates')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data.length > 0) setDefaultTemplateId(d.data[0].id);
+      })
+      .catch(() => {});
+  }, []);
+
+  /* ── Intersection Observer (scroll fade-in) ── */
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.fade-in-up').forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  /* ── Image sequence background ── */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const syncSize = () => {
+      const el = canvas.parentElement ?? canvas;
+      if (canvas.width !== el.clientWidth) canvas.width = el.clientWidth;
+      if (canvas.height !== el.clientHeight) canvas.height = el.clientHeight;
+    };
+    const ro = new ResizeObserver(syncSize);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
+    syncSize();
+
+    let raf: number;
+    let isActive = true;
+
+    fetch('/frames.json')
+      .then(r => r.json())
+      .then((frameFiles: string[]) => {
+        if (!isActive) return;
+        const frameCount = frameFiles.length;
+        const images: HTMLImageElement[] = [];
+        let loadedCount = 0;
+
+        frameFiles.forEach(file => {
+          const img = new Image();
+          img.src = `/hero-frames/${file}`;
+          img.onload = () => loadedCount++;
+          images.push(img);
+        });
+
+        let frameIndex = 0;
+        let lastTime = 0;
+        const fps = 30;
+        const frameInterval = 1000 / fps;
+
+        const draw = (time: number) => {
+          raf = requestAnimationFrame(draw);
+          if (!lastTime) lastTime = time;
+
+          const deltaTime = time - lastTime;
+          let frameProgress = deltaTime / frameInterval;
+
+          if (deltaTime >= frameInterval) {
+            lastTime = time - (deltaTime % frameInterval);
+            frameIndex = (frameIndex + 1) % frameCount;
+            frameProgress = 0;
+          }
+
+          if (loadedCount > 0 && images[frameIndex]?.complete && images[frameIndex]?.naturalWidth > 0) {
+            const img = images[frameIndex];
+            const nextImg = images[(frameIndex + 1) % frameCount];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            const drawImg = (image: HTMLImageElement, alpha: number) => {
+              if (!image || !image.complete) return;
+              const canvasRatio = canvas.width / canvas.height;
+              const imgRatio = image.width / image.height;
+              let drawWidth = canvas.width;
+              let drawHeight = canvas.height;
+              let offsetX = 0;
+              let offsetY = 0;
+
+              if (canvasRatio > imgRatio) {
+                drawHeight = canvas.width / imgRatio;
+                offsetY = (canvas.height - drawHeight) / 2;
+              } else {
+                drawWidth = canvas.height * imgRatio;
+                offsetX = (canvas.width - drawWidth) / 2;
+              }
+
+              ctx.globalAlpha = alpha;
+              ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+            };
+
+            // Draw current frame
+            drawImg(img, 1);
+            // Draw next frame faded in
+            if (nextImg) {
+              drawImg(nextImg, frameProgress * 0.5);
+            }
+            ctx.globalAlpha = 1;
+          }
+        };
+
+        raf = requestAnimationFrame(draw);
+      })
+      .catch(err => console.error('Failed to load frames.json', err));
+
+    return () => {
+      isActive = false;
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  const go = (path: string) => {
+    if (path.startsWith('/templates')) {
+      router.push(path);
+      return;
+    }
+    if (!isAuthenticated) { router.push(`/login?redirect=${path}`); return; }
+    router.push(path);
+  };
+
+  const THEMES = [
+    { name: 'Timeless', sub: 'Editorial & Classic', img: PHOTOS[0], span: 'md:col-span-7', aspect: 'aspect-[1.4]' },
+    { name: 'You & Me',  sub: 'Romantic & Soft',    img: PHOTOS[1], span: 'md:col-span-5', aspect: 'aspect-[1.1]' },
+  ];
+
+=======
   const [dbTemplates, setDbTemplates] = useState<Array<{id:string; name:string; thumbnail:string|null}>>([]);
   const [polaroidIndex, setPolaroidIndex] = useState(0);
 
@@ -126,18 +283,20 @@ export default function HomePage() {
 
         let frameIndex = 0;
         let lastTime = 0;
-        const slideDuration = 4000; // 4 seconds per image
-        const fadeDuration = 1000; // 1 second crossfade
+        const fps = 30;
+        const frameInterval = 1000 / fps;
 
         const draw = (time: number) => {
           raf = requestAnimationFrame(draw);
           if (!lastTime) lastTime = time;
 
-          const timeElapsed = time - lastTime;
+          const deltaTime = time - lastTime;
+          let frameProgress = deltaTime / frameInterval;
 
-          if (timeElapsed >= slideDuration) {
-            lastTime = time - (timeElapsed % slideDuration);
+          if (deltaTime >= frameInterval) {
+            lastTime = time - (deltaTime % frameInterval);
             frameIndex = (frameIndex + 1) % frameCount;
+            frameProgress = 0;
           }
 
           if (loadedCount > 0 && images[frameIndex]?.complete && images[frameIndex]?.naturalWidth > 0) {
@@ -148,41 +307,32 @@ export default function HomePage() {
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
 
-            const drawImg = (image: HTMLImageElement, alpha: number, scale: number) => {
+            const drawImg = (image: HTMLImageElement, alpha: number) => {
               if (!image || !image.complete) return;
               const canvasRatio = canvas.width / canvas.height;
               const imgRatio = image.width / image.height;
-              let drawWidth = canvas.width * scale;
-              let drawHeight = canvas.height * scale;
+              let drawWidth = canvas.width;
+              let drawHeight = canvas.height;
               let offsetX = 0;
               let offsetY = 0;
 
               if (canvasRatio > imgRatio) {
-                drawHeight = (canvas.width / imgRatio) * scale;
+                drawHeight = canvas.width / imgRatio;
+                offsetY = (canvas.height - drawHeight) / 2;
               } else {
-                drawWidth = (canvas.height * imgRatio) * scale;
+                drawWidth = canvas.height * imgRatio;
+                offsetX = (canvas.width - drawWidth) / 2;
               }
-              offsetX = (canvas.width - drawWidth) / 2;
-              offsetY = (canvas.height - drawHeight) / 2;
 
               ctx.globalAlpha = alpha;
               ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
             };
 
-            let fadeProgress = 0;
-            if (timeElapsed > slideDuration - fadeDuration) {
-               fadeProgress = (timeElapsed - (slideDuration - fadeDuration)) / fadeDuration;
-            }
-
-            const scaleCurrent = 1 + (timeElapsed / slideDuration) * 0.08;
-            const scaleNext = 1 + fadeProgress * 0.08;
-
             // Draw current frame
-            drawImg(img, 1 - fadeProgress, scaleCurrent);
-            
+            drawImg(img, 1);
             // Draw next frame faded in
-            if (nextImg && fadeProgress > 0) {
-              drawImg(nextImg, fadeProgress, scaleNext);
+            if (nextImg) {
+              drawImg(nextImg, frameProgress * 0.5);
             }
             ctx.globalAlpha = 1;
           }
@@ -225,6 +375,7 @@ export default function HomePage() {
   const productSizes = ['Medium Photobook', 'Mini PhotoBook', 'Large Photobook', 'Medium Photobook', 'Medium Photobook', 'Large Photobook'];
 
 
+>>>>>>> Stashed changes
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: COLOR.surface, color: COLOR.onSurface }}>
       <Navbar />
@@ -236,7 +387,7 @@ export default function HomePage() {
         className="grid grid-cols-1 lg:grid-cols-2"
         style={{
           width: '100%',
-          height: 'calc(100svh - 80px)', // Strictly set height to viewport minus navbar
+          minHeight: '100svh',
           overflow: 'hidden',
           backgroundColor: COLOR.surface,
         }}
@@ -246,7 +397,7 @@ export default function HomePage() {
           className="fade-in-up flex flex-col justify-center items-start"
           style={{
             zIndex: 10,
-            padding: 'clamp(20px, 4vh, 60px) clamp(24px, 4vw, 80px)', // Reduced padding
+            padding: 'clamp(80px, 12vh, 140px) clamp(32px, 5vw, 80px)',
             textAlign: 'left',
           }}
         >
@@ -266,9 +417,13 @@ export default function HomePage() {
               backgroundColor: 'transparent',
               borderRadius: 999,
               padding: '6px 16px',
-              marginBottom: 12, // Reduced margin
+              marginBottom: 24,
             }}
           >
+<<<<<<< Updated upstream
+            <SunMark size={12} />
+=======
+>>>>>>> Stashed changes
             Heirloom Quality
           </span>
 
@@ -276,12 +431,12 @@ export default function HomePage() {
           <h1
             style={{
               fontFamily: 'var(--font-playfair)',
-              fontSize: 'clamp(32px, 4vw, 56px)', // Slightly reduced max font size
+              fontSize: 'clamp(36px, 5vw, 64px)',
               fontWeight: 400,
               lineHeight: 1.1,
               letterSpacing: '-0.02em',
               color: COLOR.onSurface,
-              marginBottom: 12, // Reduced margin
+              marginBottom: 24,
             }}
           >
             Photobooks & polaroids,<br />made to keep forever.
@@ -291,11 +446,11 @@ export default function HomePage() {
           <p
             style={{
               fontFamily: 'var(--font-hanken)',
-              fontSize: 'clamp(15px, 1.6vw, 18px)', // Slightly reduced
+              fontSize: 'clamp(16px, 1.8vw, 20px)',
               color: COLOR.onSurfaceVariant,
-              lineHeight: 1.6,
+              lineHeight: 1.7,
               maxWidth: 520,
-              marginBottom: 24, // Reduced margin
+              marginBottom: 40,
               fontWeight: 400,
             }}
           >
@@ -309,7 +464,7 @@ export default function HomePage() {
               flexWrap: 'wrap',
               alignItems: 'center',
               gap: 12,
-              marginBottom: 24, // Reduced margin
+              marginBottom: 48,
             }}
           >
             <button
@@ -461,35 +616,43 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* 4 Large Hero Theme Cards */}
+<<<<<<< Updated upstream
+          {/* Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up">
+=======
+          {/* 2 Large Hero Theme Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up" style={{ marginBottom: 48 }}>
-            {photobookCoversRegistry.slice(0, 4).map((t) => {
-              const name = t.fileName.replace('.png', '');
-              return (
+>>>>>>> Stashed changes
+            {THEMES.map((t) => (
               <div
-                key={name}
+                key={t.name}
                 className="group cursor-pointer"
+<<<<<<< Updated upstream
+                onClick={() => router.push(defaultTemplateId ? `/templates/${defaultTemplateId}?name=${encodeURIComponent(t.name)}&img=${encodeURIComponent(t.img)}` : '/templates')}
+=======
                 onClick={() => {
-                  router.push(`/editor/guest?themeFileName=${encodeURIComponent(t.fileName)}`);
+                  const fileName = t.img.split('/').pop() || '';
+                  router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
                 }}
+>>>>>>> Stashed changes
               >
                 <div
                   className="relative overflow-hidden aspect-[1.25] mb-4 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
                   style={{ backgroundColor: COLOR.surface, borderRadius: '3rem 0.5rem 3rem 0.5rem' }}
                 >
                   <img
-                    src={`/products/${t.fileName}`}
-                    alt={name}
+                    src={t.img}
+                    alt={t.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 p-1"
                   />
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-[24px] font-normal mb-1" style={{ fontFamily: 'var(--font-playfair)', color: COLOR.onSurface }}>
-                      {name}
+                      {t.name}
                     </h3>
                     <p className="text-[16px]" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.onSurfaceVariant }}>
-                      {t.textBoxes[0]?.content || 'Curated Design'}
+                      {t.sub}
                     </p>
                   </div>
                   <span className="text-[16px] font-medium" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.primary }}>
@@ -497,7 +660,84 @@ export default function HomePage() {
                   </span>
                 </div>
               </div>
-            )})}
+            ))}
+          </div>
+
+<<<<<<< Updated upstream
+          {/* Product grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12 mt-8">
+            {PRODUCT_IMAGES.slice(0, 4).map((img, i) => {
+              const sizes = ["Medium Photobook", "Mini PhotoBook", "Large Photobook", "Medium Photobook", "Medium Photobook", "Large Photobook"];
+              const size = sizes[i % sizes.length];
+              const price = size === "Mini PhotoBook" ? "1,599" : size === "Medium Photobook" ? "1,799" : "1,999";
+              const oldPrice = size === "Mini PhotoBook" ? "1,799" : size === "Medium Photobook" ? "2,099" : "2,299";
+
+              const colorsList = [
+                ['#ffffff'],
+                ['#e5e3d7', '#434f38', '#dae7c8', '#f0eded'],
+                ['#5b674e'],
+                ['#dae7c8', '#1b1c1c', '#434f38', '#c5c7bd', '#f0eded'],
+                ['#dae7c8', '#ba1a1a', '#9eb4cc'],
+                ['#ffffff', '#f0eded', '#1b1c1c']
+              ];
+              const colors = colorsList[i % colorsList.length];
+=======
+          {/* 4 Smaller Product Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
+            {PRODUCT_IMAGES.filter(img => !PHOTOS.includes(img)).slice(0, 4).map((img, i) => {
+              const size = productSizes[i % productSizes.length];
+              const price = size === 'Mini PhotoBook' ? '1,599' : size === 'Medium Photobook' ? '1,799' : '1,999';
+              const oldPrice = size === 'Mini PhotoBook' ? '1,799' : size === 'Medium Photobook' ? '2,099' : '2,299';
+              const colors = productColorsList[i % productColorsList.length];
+>>>>>>> Stashed changes
+
+              return (
+                <div
+                  key={img}
+                  className="group cursor-pointer fade-in-up"
+<<<<<<< Updated upstream
+                  onClick={() => router.push(defaultTemplateId ? `/templates/${defaultTemplateId}?name=${encodeURIComponent(formatProductName(img))}&img=${encodeURIComponent(img)}` : '/templates')}
+=======
+                  onClick={() => {
+                    const fileName = img.split('/').pop() || '';
+                    router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
+                  }}
+>>>>>>> Stashed changes
+                >
+                  {/* Image Container */}
+                  <div
+                    className="relative overflow-hidden aspect-[1.25] mb-4 flex items-center justify-center transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
+                    style={{ backgroundColor: COLOR.surface, borderRadius: '0.5rem' }}
+                  >
+                    <img
+                      src={img}
+                      alt={formatProductName(img)}
+                      className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105 p-4"
+                    />
+                  </div>
+
+                  {/* Details Container */}
+                  <div className="text-center w-full px-1">
+                    <h3 className="font-semibold text-[15px] leading-tight mb-1 truncate" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.onSurface }}>
+                      {formatProductName(img)}
+                    </h3>
+                    <p className="text-[13px] mb-2" style={{ color: COLOR.outline }}>{size}</p>
+
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <span className="font-semibold text-[14px]" style={{ color: COLOR.onSurface }}>Rs. {price}</span>
+                      <span className="text-[12px] line-through px-1 font-medium" style={{ backgroundColor: COLOR.secondaryContainer, color: COLOR.onSurface }}>Rs. {oldPrice}</span>
+                    </div>
+
+                    {/* Colors */}
+                    <div className="flex items-center justify-center gap-1.5">
+                      {colors.map((c, idx) => (
+                        <div key={idx} className="w-4 h-4 rounded-full border" style={{ backgroundColor: c, borderColor: COLOR.outlineVariant }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 60 }}>
@@ -856,14 +1096,24 @@ export default function HomePage() {
           {/* Image stack */}
           <div style={{ position: 'relative', width: '100%', aspectRatio: '1', maxWidth: 500, margin: '0 auto' }}>
             <img
+<<<<<<< Updated upstream
+              src="/products/2Medium Photobook.png"
+=======
               src="/products/Our Story.png"
+>>>>>>> Stashed changes
               alt="Medium Photobook"
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4rem 0.5rem 0.5rem 0.5rem', boxShadow: '0 4px 30px rgba(0,0,0,0.06)' }}
             />
             <img
+<<<<<<< Updated upstream
+              className="hidden md:block"
+              src="/products/3Large Photobook.png"
+              alt="Large Photobook"
+=======
               className="hidden md:block transition-all duration-700"
               src={POLAROIDS[polaroidIndex].image}
               alt="Polaroid Preview"
+>>>>>>> Stashed changes
               style={{
                 position: 'absolute',
                 bottom: -40,
@@ -915,6 +1165,12 @@ export default function HomePage() {
       <section style={{ padding: '80px 0', backgroundColor: COLOR.surfaceContainerLow }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
           <div className="fade-in-up" style={{ textAlign: 'center', marginBottom: 56 }}>
+<<<<<<< Updated upstream
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <SunMark size={30} color={COLOR.outline} />
+            </div>
+=======
+>>>>>>> Stashed changes
             <h2
               style={{
                 fontFamily: 'var(--font-playfair)',

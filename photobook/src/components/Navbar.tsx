@@ -4,6 +4,67 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+<<<<<<< Updated upstream
+
+/* ── Sun-ray mark (Taikiru-style decorative logo glyph) ── */
+function SunMark({ size = 14, color = '#434f38' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 0 L13.8 9.2 L23 8 L14.6 12 L23 16 L13.8 14.8 L12 24 L10.2 14.8 L1 16 L9.4 12 L1 8 L10.2 9.2 Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
+
+export default function Navbar() {
+  const { isAuthenticated, user, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 4);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  const handleCreate = () => {
+    setMenuOpen(false);
+    router.push(isAuthenticated ? '/templates' : '/editor/guest');
+  };
+
+  const isActive = (href: string) => pathname === href;
+
+  /* ── Inline style helpers ── */
+  const linkStyle = (active: boolean): React.CSSProperties => ({
+    fontFamily: 'var(--font-hanken)',
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: active ? '#434f38' : '#454840',
+    textDecoration: active ? 'underline' : 'none',
+    textUnderlineOffset: 5,
+    cursor: 'pointer',
+    transition: 'color 0.15s',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+  });
+
+  return (
+=======
+
 
 
 export default function Navbar() {
@@ -51,6 +112,7 @@ export default function Navbar() {
   });
 
   return (
+>>>>>>> Stashed changes
     <>
       <nav
         style={{
@@ -92,6 +154,10 @@ export default function Navbar() {
               letterSpacing: '-0.01em',
             }}
           >
+<<<<<<< Updated upstream
+            <SunMark />
+=======
+>>>>>>> Stashed changes
             PhotoBook Studio
           </Link>
 
