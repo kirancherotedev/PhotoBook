@@ -129,7 +129,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Le */}
+          {/* Legal */}
           <div>
             <h4
               style={{
