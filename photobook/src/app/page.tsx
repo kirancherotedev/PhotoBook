@@ -489,7 +489,7 @@ export default function HomePage() {
                       {name}
                     </h3>
                     <p className="text-[16px]" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.onSurfaceVariant }}>
-                      {t.textBoxes[0]?.content || 'Curated Design'}
+                      {(t.textBoxes[0] as { content?: string })?.content || 'Curated Design'}
                     </p>
                   </div>
                   <span className="text-[16px] font-medium" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.primary }}>
