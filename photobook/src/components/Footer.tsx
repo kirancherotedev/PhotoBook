@@ -78,11 +78,11 @@ export default function Footer() {
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { href: '/templates',                    label: 'Photobooks' },
-                { href: '/polaroids/start',  label: 'Custom Polaroids' },
-                { href: '/pricing',                       label: 'Pricing' },
-                { href: '/my-projects',                   label: 'My Projects' },
-                { href: '/my-orders',                     label: 'My Orders' },
+                { href: '/templates', label: 'Photobooks' },
+                { href: '/polaroids/start', label: 'Custom Polaroids' },
+                { href: '/pricing', label: 'Pricing' },
+                { href: '/my-projects', label: 'My Projects' },
+                { href: '/my-orders', label: 'My Orders' },
               ].map(l => (
                 <Link
                   key={l.href}
@@ -129,7 +129,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Legal */}
+          {/* Le */}
           <div>
             <h4
               style={{
