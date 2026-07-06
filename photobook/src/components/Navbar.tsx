@@ -6,7 +6,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 
-
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();

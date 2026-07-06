@@ -6,24 +6,24 @@
 
 @theme {
   /* ── Core Design Token Colors (from reference HTML files) ── */
-  --color-primary:                  #173124;
+  --color-primary:                  #0d0d0c;
   --color-on-primary:               #ffffff;
-  --color-primary-container:        #2d4739;
-  --color-on-primary-container:     #98b5a3;
-  --color-primary-fixed:            #ccead6;
-  --color-primary-fixed-dim:        #b0cdbb;
-  --color-on-primary-fixed:         #062014;
-  --color-on-primary-fixed-variant: #324c3e;
-  --color-inverse-primary:          #b0cdbb;
+  --color-primary-container:        #2a2a2a;
+  --color-on-primary-container:     #e5e5e5;
+  --color-primary-fixed:            #e5e5e5;
+  --color-primary-fixed-dim:        #cccccc;
+  --color-on-primary-fixed:         #000000;
+  --color-on-primary-fixed-variant: #333333;
+  --color-inverse-primary:          #cccccc;
 
-  --color-secondary:                #745757;
+  --color-secondary:                #747474;
   --color-on-secondary:             #ffffff;
-  --color-secondary-container:      #fad4d3;
-  --color-on-secondary-container:   #775a5a;
-  --color-secondary-fixed:          #ffdad9;
-  --color-secondary-fixed-dim:      #e3bebd;
-  --color-on-secondary-fixed:       #2b1616;
-  --color-on-secondary-fixed-variant: #5b4040;
+  --color-secondary-container:      #e5e5e5;
+  --color-on-secondary-container:   #333333;
+  --color-secondary-fixed:          #e5e5e5;
+  --color-secondary-fixed-dim:      #cccccc;
+  --color-on-secondary-fixed:       #000000;
+  --color-on-secondary-fixed-variant: #333333;
 
   --color-tertiary:                 #412324;
   --color-on-tertiary:              #ffffff;
@@ -39,26 +39,26 @@
   --color-error-container:          #ffdad6;
   --color-on-error-container:       #93000a;
 
-  --color-background:               #fff8f0;
-  --color-on-background:            #1d1b17;
-  --color-surface:                  #fff8f0;
-  --color-surface-bright:           #fff8f0;
-  --color-surface-dim:              #dfd9d1;
-  --color-on-surface:               #1d1b17;
-  --color-on-surface-variant:       #424844;
-  --color-surface-tint:             #496455;
-  --color-surface-variant:          #e7e2da;
-  --color-inverse-surface:          #32302b;
-  --color-inverse-on-surface:       #f6f0e8;
+  --color-background:               #ffffff;
+  --color-on-background:            #0d0d0c;
+  --color-surface:                  #ffffff;
+  --color-surface-bright:           #ffffff;
+  --color-surface-dim:              #f8f7f7;
+  --color-on-surface:               #0d0d0c;
+  --color-on-surface-variant:       #747474;
+  --color-surface-tint:             #0d0d0c;
+  --color-surface-variant:          #f8f7f7;
+  --color-inverse-surface:          #0d0d0c;
+  --color-inverse-on-surface:       #ffffff;
 
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low:    #f9f3eb;
-  --color-surface-container:        #f3ede5;
-  --color-surface-container-high:   #ede7df;
-  --color-surface-container-highest:#e7e2da;
+  --color-surface-container-low:    #fcfcfc;
+  --color-surface-container:        #f8f7f7;
+  --color-surface-container-high:   #f0f0f0;
+  --color-surface-container-highest:#e5e5e5;
 
-  --color-outline:                  #727973;
-  --color-outline-variant:          #c2c8c2;
+  --color-outline:                  #e5e5e5;
+  --color-outline-variant:          #f0f0f0;
 
   /* ── Font Variables ── */
   --font-body-md:          var(--font-hanken);
@@ -125,12 +125,12 @@
 
 /* ── Legacy Blush Tokens (for existing components) ── */
 :root {
-  --blush-50:  #fff8f0;
-  --blush-100: #f9f3eb;
-  --blush-200: #f3ede5;
-  --blush-400: #c2c8c2;
-  --blush-600: #727973;
-  --blush-900: #173124;
+  --blush-50:  #ffffff;
+  --blush-100: #fcfcfc;
+  --blush-200: #f8f7f7;
+  --blush-400: #e5e5e5;
+  --blush-600: #747474;
+  --blush-900: #0d0d0c;
 
   --font-serif: 'Libre Caslon Text', Georgia, serif;
   --font-sans:  'Work Sans', 'Inter', system-ui, -apple-system, sans-serif;
@@ -156,8 +156,8 @@ html {
 
 body {
   font-family: var(--font-sans);
-  color: #1b1c1c;
-  background-color: #fcf9f8;
+  color: #0d0d0c;
+  background-color: #f8f7f7;
   line-height: 1.6;
   font-size: 16px;
   overflow-x: hidden;
@@ -236,7 +236,7 @@ a {
   inset: 0;
   top: 0;
   z-index: 100;
-  background: #fff8f0;
+  background: #ffffff;
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -268,36 +268,36 @@ a {
   white-space: nowrap;
 }
 .btn-primary {
-  background-color: #173124;
+  background-color: #0d0d0c;
   color: #ffffff;
 }
 .btn-primary:hover {
-  background-color: #2d4739;
+  background-color: #000000;
   color: #ffffff;
 }
 .btn-secondary {
   background-color: transparent;
-  color: #745757;
-  border: 1px solid #745757;
+  color: #747474;
+  border: 1px solid #747474;
 }
 .btn-secondary:hover {
-  background-color: #745757;
-  color: #ffffff;
+  background-color: #f8f7f7;
+  color: #0d0d0c;
 }
 .btn-outline {
   background: transparent;
-  border: 1px solid #c2c8c2;
-  color: #173124;
+  border: 1px solid #e5e5e5;
+  color: #0d0d0c;
 }
 .btn-outline:hover {
-  background-color: #f9f3eb;
+  background-color: #f8f7f7;
 }
 .btn-ghost {
   background: transparent;
-  color: #173124;
+  color: #0d0d0c;
 }
 .btn-ghost:hover {
-  background-color: #f9f3eb;
+  background-color: #f8f7f7;
 }
 .btn-sm  { padding: 6px 14px; font-size: 11px; }
 .btn-lg  { padding: 14px 32px; }
@@ -305,16 +305,16 @@ a {
 
 /* ── Cards ── */
 .card {
-  background-color: #f9f3eb;
-  border: 1px solid #c2c8c2;
+  background-color: #f8f7f7;
+  border: 1px solid #e5e5e5;
   border-radius: 0.25rem;
   padding: 24px;
   transition: border-color var(--transition-fast);
 }
-.card:hover { border-color: #727973; }
+.card:hover { border-color: #cccccc; }
 .card-surface {
-  background-color: #fff8f0;
-  border: 1px solid #c2c8c2;
+  background-color: #ffffff;
+  border: 1px solid #e5e5e5;
   border-radius: 0.25rem;
   padding: 24px;
 }
@@ -481,45 +481,180 @@ tr:hover td { background-color: #f9f3eb; }
 /* ── Editor Layout ── */
 .editor-layout {
   display: grid;
-  grid-template-columns: 280px 1fr 260px;
-  grid-template-rows: 64px 1fr;
+  grid-template-columns: 260px 1fr 64px 260px;
+  grid-template-rows: 64px 1fr 140px;
   height: 100vh;
   overflow: hidden;
 }
 @media (max-width: 767px) {
   .editor-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 64px 1fr auto;
+    grid-template-rows: 64px auto 1fr auto auto;
   }
 }
 .editor-toolbar {
   grid-column: 1 / -1;
-  background: #fff8f0;
-  border-bottom: 1px solid #c2c8c2;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  justify-content: space-between;
+  padding: 0 24px;
   gap: 8px;
 }
-.editor-sidepanel {
-  background: #fff8f0;
-  border-right: 1px solid #c2c8c2;
-  overflow-y: auto;
-  padding: 16px;
+.editor-left-sidebar {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  background: #ffffff;
+  border-right: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
 }
 .editor-canvas-area {
-  background: #e7e2da;
+  grid-column: 2;
+  grid-row: 2;
+  background: #f8f7f7;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: auto;
   position: relative;
 }
-.editor-properties {
-  background: #fff8f0;
-  border-left: 1px solid #c2c8c2;
+.editor-bottom-carousel {
+  grid-column: 2;
+  grid-row: 3;
+  background: #ffffff;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  overflow-x: auto;
+  position: relative;
+}
+.editor-sidepanel-icons {
+  grid-column: 3;
+  grid-row: 2 / 4;
+  background: #ffffff;
+  border-left: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 24px;
+  gap: 24px;
+}
+.editor-sidepanel-content {
+  grid-column: 4;
+  grid-row: 2 / 4;
+  background: #ffffff;
+  border-left: 1px solid #e5e5e5;
   overflow-y: auto;
+}
+
+/* ── OddGiraffe Parity Custom Elements ── */
+.carousel-thumbnail-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.carousel-thumbnail-wrapper:hover {
+  opacity: 1;
+}
+.carousel-thumbnail-wrapper.active {
+  opacity: 1;
+}
+.carousel-thumbnail-wrapper.active .carousel-thumbnail {
+  border-color: #0d0d0c;
+  border-width: 2px;
+}
+.carousel-thumbnail {
+  background: #f8f7f7;
+  border: 1px solid #e5e5e5;
+  display: flex;
+  height: 50px;
+  aspect-ratio: 2/1;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.carousel-thumbnail.single {
+  aspect-ratio: 1/1;
+}
+
+.text-edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.text-edit-modal-content {
+  background: transparent;
+  width: 800px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.text-edit-textarea {
+  width: 100%;
+  min-height: 200px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 32px;
+  text-align: center;
+  resize: none;
   padding: 16px;
+  color: #0d0d0c;
+  line-height: 1.4;
+}
+.text-edit-textarea::placeholder {
+  color: #cccccc;
+}
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.layout-thumbnail {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  position: relative;
+  padding: 8px;
+  transition: border-color 0.2s;
+}
+.layout-thumbnail:hover {
+  border-color: #747474;
+}
+.layout-thumbnail.active {
+  border-color: #0d0d0c;
+  border-width: 2px;
+}
+.layout-thumbnail-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: relative;
+  background: #f8f7f7;
+  border: 1px solid #e5e5e5;
 }
 
 /* ── Checkout ── */

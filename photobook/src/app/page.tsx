@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 import { PRODUCT_IMAGES, formatProductName } from '@/lib/products';
+import { photobookCoversRegistry } from '@/lib/curated-themes';
 
 const PHOTOS = [
   '/products/You & Me  Timeless.png',
@@ -125,20 +126,18 @@ export default function HomePage() {
 
         let frameIndex = 0;
         let lastTime = 0;
-        const fps = 30;
-        const frameInterval = 1000 / fps;
+        const slideDuration = 4000; // 4 seconds per image
+        const fadeDuration = 1000; // 1 second crossfade
 
         const draw = (time: number) => {
           raf = requestAnimationFrame(draw);
           if (!lastTime) lastTime = time;
 
-          const deltaTime = time - lastTime;
-          let frameProgress = deltaTime / frameInterval;
+          const timeElapsed = time - lastTime;
 
-          if (deltaTime >= frameInterval) {
-            lastTime = time - (deltaTime % frameInterval);
+          if (timeElapsed >= slideDuration) {
+            lastTime = time - (timeElapsed % slideDuration);
             frameIndex = (frameIndex + 1) % frameCount;
-            frameProgress = 0;
           }
 
           if (loadedCount > 0 && images[frameIndex]?.complete && images[frameIndex]?.naturalWidth > 0) {
@@ -149,32 +148,41 @@ export default function HomePage() {
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
 
-            const drawImg = (image: HTMLImageElement, alpha: number) => {
+            const drawImg = (image: HTMLImageElement, alpha: number, scale: number) => {
               if (!image || !image.complete) return;
               const canvasRatio = canvas.width / canvas.height;
               const imgRatio = image.width / image.height;
-              let drawWidth = canvas.width;
-              let drawHeight = canvas.height;
+              let drawWidth = canvas.width * scale;
+              let drawHeight = canvas.height * scale;
               let offsetX = 0;
               let offsetY = 0;
 
               if (canvasRatio > imgRatio) {
-                drawHeight = canvas.width / imgRatio;
-                offsetY = (canvas.height - drawHeight) / 2;
+                drawHeight = (canvas.width / imgRatio) * scale;
               } else {
-                drawWidth = canvas.height * imgRatio;
-                offsetX = (canvas.width - drawWidth) / 2;
+                drawWidth = (canvas.height * imgRatio) * scale;
               }
+              offsetX = (canvas.width - drawWidth) / 2;
+              offsetY = (canvas.height - drawHeight) / 2;
 
               ctx.globalAlpha = alpha;
               ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
             };
 
+            let fadeProgress = 0;
+            if (timeElapsed > slideDuration - fadeDuration) {
+               fadeProgress = (timeElapsed - (slideDuration - fadeDuration)) / fadeDuration;
+            }
+
+            const scaleCurrent = 1 + (timeElapsed / slideDuration) * 0.08;
+            const scaleNext = 1 + fadeProgress * 0.08;
+
             // Draw current frame
-            drawImg(img, 1);
+            drawImg(img, 1 - fadeProgress, scaleCurrent);
+            
             // Draw next frame faded in
-            if (nextImg) {
-              drawImg(nextImg, frameProgress * 0.5);
+            if (nextImg && fadeProgress > 0) {
+              drawImg(nextImg, fadeProgress, scaleNext);
             }
             ctx.globalAlpha = 1;
           }
@@ -228,7 +236,7 @@ export default function HomePage() {
         className="grid grid-cols-1 lg:grid-cols-2"
         style={{
           width: '100%',
-          minHeight: '100svh',
+          height: 'calc(100svh - 80px)', // Strictly set height to viewport minus navbar
           overflow: 'hidden',
           backgroundColor: COLOR.surface,
         }}
@@ -238,7 +246,7 @@ export default function HomePage() {
           className="fade-in-up flex flex-col justify-center items-start"
           style={{
             zIndex: 10,
-            padding: 'clamp(80px, 12vh, 140px) clamp(32px, 5vw, 80px)',
+            padding: 'clamp(20px, 4vh, 60px) clamp(24px, 4vw, 80px)', // Reduced padding
             textAlign: 'left',
           }}
         >
@@ -258,7 +266,7 @@ export default function HomePage() {
               backgroundColor: 'transparent',
               borderRadius: 999,
               padding: '6px 16px',
-              marginBottom: 24,
+              marginBottom: 12, // Reduced margin
             }}
           >
             Heirloom Quality
@@ -268,12 +276,12 @@ export default function HomePage() {
           <h1
             style={{
               fontFamily: 'var(--font-playfair)',
-              fontSize: 'clamp(36px, 5vw, 64px)',
+              fontSize: 'clamp(32px, 4vw, 56px)', // Slightly reduced max font size
               fontWeight: 400,
               lineHeight: 1.1,
               letterSpacing: '-0.02em',
               color: COLOR.onSurface,
-              marginBottom: 24,
+              marginBottom: 12, // Reduced margin
             }}
           >
             Photobooks & polaroids,<br />made to keep forever.
@@ -283,11 +291,11 @@ export default function HomePage() {
           <p
             style={{
               fontFamily: 'var(--font-hanken)',
-              fontSize: 'clamp(16px, 1.8vw, 20px)',
+              fontSize: 'clamp(15px, 1.6vw, 18px)', // Slightly reduced
               color: COLOR.onSurfaceVariant,
-              lineHeight: 1.7,
+              lineHeight: 1.6,
               maxWidth: 520,
-              marginBottom: 40,
+              marginBottom: 24, // Reduced margin
               fontWeight: 400,
             }}
           >
@@ -301,7 +309,7 @@ export default function HomePage() {
               flexWrap: 'wrap',
               alignItems: 'center',
               gap: 12,
-              marginBottom: 48,
+              marginBottom: 24, // Reduced margin
             }}
           >
             <button
@@ -453,15 +461,16 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* 2 Large Hero Theme Cards */}
+          {/* 4 Large Hero Theme Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up" style={{ marginBottom: 48 }}>
-            {THEMES.map((t) => (
+            {photobookCoversRegistry.slice(0, 4).map((t) => {
+              const name = t.fileName.replace('.png', '');
+              return (
               <div
-                key={t.name}
+                key={name}
                 className="group cursor-pointer"
                 onClick={() => {
-                  const fileName = t.img.split('/').pop() || '';
-                  router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
+                  router.push(`/editor/guest?themeFileName=${encodeURIComponent(t.fileName)}`);
                 }}
               >
                 <div
@@ -469,18 +478,18 @@ export default function HomePage() {
                   style={{ backgroundColor: COLOR.surface, borderRadius: '3rem 0.5rem 3rem 0.5rem' }}
                 >
                   <img
-                    src={t.img}
-                    alt={t.name}
+                    src={`/products/${t.fileName}`}
+                    alt={name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 p-1"
                   />
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-[24px] font-normal mb-1" style={{ fontFamily: 'var(--font-playfair)', color: COLOR.onSurface }}>
-                      {t.name}
+                      {name}
                     </h3>
                     <p className="text-[16px]" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.onSurfaceVariant }}>
-                      {t.sub}
+                      {t.textBoxes[0]?.content || 'Curated Design'}
                     </p>
                   </div>
                   <span className="text-[16px] font-medium" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.primary }}>
@@ -488,60 +497,7 @@ export default function HomePage() {
                   </span>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* 4 Smaller Product Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
-            {PRODUCT_IMAGES.filter(img => !PHOTOS.includes(img)).slice(0, 4).map((img, i) => {
-              const size = productSizes[i % productSizes.length];
-              const price = size === 'Mini PhotoBook' ? '1,599' : size === 'Medium Photobook' ? '1,799' : '1,999';
-              const oldPrice = size === 'Mini PhotoBook' ? '1,799' : size === 'Medium Photobook' ? '2,099' : '2,299';
-              const colors = productColorsList[i % productColorsList.length];
-
-              return (
-                <div
-                  key={img}
-                  className="group cursor-pointer fade-in-up"
-                  onClick={() => {
-                    const fileName = img.split('/').pop() || '';
-                    router.push(`/editor/guest?themeFileName=${encodeURIComponent(fileName)}`);
-                  }}
-                >
-                  {/* Image Container */}
-                  <div
-                    className="relative overflow-hidden aspect-[1.25] mb-4 flex items-center justify-center transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
-                    style={{ backgroundColor: COLOR.surface, borderRadius: '0.5rem' }}
-                  >
-                    <img
-                      src={img}
-                      alt={formatProductName(img)}
-                      className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105 p-4"
-                    />
-                  </div>
-
-                  {/* Details Container */}
-                  <div className="text-center w-full px-1">
-                    <h3 className="font-semibold text-[15px] leading-tight mb-1 truncate" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.onSurface }}>
-                      {formatProductName(img)}
-                    </h3>
-                    <p className="text-[13px] mb-2" style={{ color: COLOR.outline }}>{size}</p>
-
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <span className="font-semibold text-[14px]" style={{ color: COLOR.onSurface }}>Rs. {price}</span>
-                      <span className="text-[12px] line-through px-1 font-medium" style={{ backgroundColor: COLOR.secondaryContainer, color: COLOR.onSurface }}>Rs. {oldPrice}</span>
-                    </div>
-
-                    {/* Colors */}
-                    <div className="flex items-center justify-center gap-1.5">
-                      {colors.map((c, idx) => (
-                        <div key={idx} className="w-4 h-4 rounded-full border" style={{ backgroundColor: c, borderColor: COLOR.outlineVariant }} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            )})}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 60 }}>

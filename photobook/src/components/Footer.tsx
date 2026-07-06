@@ -19,6 +19,7 @@ export default function Footer() {
           padding: '72px 24px 40px',
         }}
       >
+
         {/* Grid: responsive 1 → 2 → 4 col */}
         <div
           style={{

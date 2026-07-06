@@ -7,9 +7,9 @@ export const photobookCoversRegistry = [
       "height": 1200
     },
     "textBoxes": [
-      { "id": "category", "x": 450, "y": 200, "width": 300, "height": 40, "content": "YOU & ME", "fontSize": 32, "textAlign": "center" as const },
-      { "id": "title", "x": 200, "y": 250, "width": 800, "height": 120, "content": "TIMELESS", "fontSize": 80, "textAlign": "center" as const },
-      { "id": "footer", "x": 300, "y": 950, "width": 600, "height": 40, "content": "THANK YOU FOR EVERYTHING", "fontSize": 24, "textAlign": "center" as const }
+      { "id": "category", "x": 450, "y": 200, "width": 300, "height": 40 },
+      { "id": "title", "x": 200, "y": 250, "width": 800, "height": 120 },
+      { "id": "footer", "x": 300, "y": 950, "width": 600, "height": 40 }
     ],
     "imageBoxes": [
       { "id": "photo1", "x": 250, "y": 400, "width": 700, "height": 480 }
@@ -23,10 +23,10 @@ export const photobookCoversRegistry = [
       "height": 1200
     },
     "textBoxes": [
-      { "id": "category", "x": 450, "y": 150, "width": 300, "height": 30, "content": "RELATIONSHIP & FAMILY", "fontSize": 20, "textAlign": "center" as const },
-      { "id": "title", "x": 200, "y": 200, "width": 800, "height": 90, "content": "BEST MOMENTS", "fontSize": 64, "textAlign": "center" as const },
-      { "id": "subtitle", "x": 300, "y": 300, "width": 600, "height": 30, "content": "THE REASON WE ARE WHO WE ARE, AND WHY WE LOVE EVERY DAY", "fontSize": 16, "textAlign": "center" as const },
-      { "id": "footer", "x": 300, "y": 1020, "width": 600, "height": 40, "content": "TOGETHER IS OUR FAVORITE PLACE TO BE", "fontSize": 20, "textAlign": "center" as const }
+      { "id": "category", "x": 450, "y": 150, "width": 300, "height": 30 },
+      { "id": "title", "x": 200, "y": 200, "width": 800, "height": 90 },
+      { "id": "subtitle", "x": 300, "y": 300, "width": 600, "height": 30 },
+      { "id": "footer", "x": 300, "y": 1020, "width": 600, "height": 40 }
     ],
     "imageBoxes": [
       { "id": "photo1", "x": 120, "y": 360, "width": 630, "height": 300 },
@@ -44,10 +44,10 @@ export const photobookCoversRegistry = [
       "height": 1200
     },
     "textBoxes": [
-      { "id": "category", "x": 400, "y": 100, "width": 400, "height": 30, "content": "AESTHETICS & STYLES", "fontSize": 20, "textAlign": "center" as const },
-      { "id": "title", "x": 200, "y": 150, "width": 800, "height": 90, "content": "THE LITTLE JOYS", "fontSize": 64, "textAlign": "center" as const },
-      { "id": "subtitle", "x": 300, "y": 250, "width": 600, "height": 40, "content": "IT'S THE LITTLE THINGS THAT MAKE LIFE WONDERFUL", "fontSize": 18, "textAlign": "center" as const },
-      { "id": "footer", "x": 300, "y": 1030, "width": 600, "height": 40, "content": "TINY MOMENTS, BIG HAPPINESS", "fontSize": 20, "textAlign": "center" as const }
+      { "id": "category", "x": 400, "y": 100, "width": 400, "height": 30 },
+      { "id": "title", "x": 200, "y": 150, "width": 800, "height": 90 },
+      { "id": "subtitle", "x": 300, "y": 250, "width": 600, "height": 40 },
+      { "id": "footer", "x": 300, "y": 1030, "width": 600, "height": 40 }
     ],
     "imageBoxes": [
       { "id": "photo1", "x": 120, "y": 320, "width": 306, "height": 210 },
@@ -69,9 +69,9 @@ export const photobookCoversRegistry = [
       "height": 1200
     },
     "textBoxes": [
-      { "id": "category", "x": 450, "y": 200, "width": 300, "height": 40, "content": "MINI", "fontSize": 32, "textAlign": "center" as const },
-      { "id": "title", "x": 200, "y": 250, "width": 800, "height": 120, "content": "PHOTOBOOK", "fontSize": 80, "textAlign": "center" as const },
-      { "id": "footer", "x": 300, "y": 950, "width": 600, "height": 40, "content": "THANK YOU FOR EVERYTHING", "fontSize": 24, "textAlign": "center" as const }
+      { "id": "category", "x": 450, "y": 200, "width": 300, "height": 40 },
+      { "id": "title", "x": 200, "y": 250, "width": 800, "height": 120 },
+      { "id": "footer", "x": 300, "y": 950, "width": 600, "height": 40 }
     ],
     "imageBoxes": [
       { "id": "photo1", "x": 250, "y": 400, "width": 700, "height": 480 }
@@ -85,10 +85,10 @@ export const photobookCoversRegistry = [
       "height": 1200
     },
     "textBoxes": [
-      { "id": "category", "x": 450, "y": 150, "width": 300, "height": 30, "content": "RELATIONSHIP & FAMILY", "fontSize": 20, "textAlign": "center" as const },
-      { "id": "title", "x": 200, "y": 200, "width": 800, "height": 90, "content": "OUR STORY", "fontSize": 80, "textAlign": "center" as const },
-      { "id": "subtitle", "x": 300, "y": 300, "width": 600, "height": 30, "content": "EVERY PICTURE TELLS A PART OF OUR STORY", "fontSize": 16, "textAlign": "center" as const },
-      { "id": "footer", "x": 300, "y": 1020, "width": 600, "height": 40, "content": "THE BEST PART OF LIFE IS YOU", "fontSize": 24, "textAlign": "center" as const }
+      { "id": "category", "x": 450, "y": 150, "width": 300, "height": 30 },
+      { "id": "title", "x": 200, "y": 200, "width": 800, "height": 90 },
+      { "id": "subtitle", "x": 300, "y": 300, "width": 600, "height": 30 },
+      { "id": "footer", "x": 300, "y": 1020, "width": 600, "height": 40 }
     ],
     "imageBoxes": [
       { "id": "photo1", "x": 120, "y": 360, "width": 306, "height": 300 },
@@ -107,10 +107,10 @@ export const photobookCoversRegistry = [
       "height": 1200
     },
     "textBoxes": [
-      { "id": "category", "x": 400, "y": 100, "width": 400, "height": 30, "content": "AESTHETICS & STYLES", "fontSize": 20, "textAlign": "center" as const },
-      { "id": "title", "x": 200, "y": 150, "width": 800, "height": 90, "content": "PICTURE PERFECT", "fontSize": 64, "textAlign": "center" as const },
-      { "id": "subtitle", "x": 300, "y": 250, "width": 600, "height": 40, "content": "BEAUTIFUL MOMENTS, PERFECTLY CAPTURED", "fontSize": 18, "textAlign": "center" as const },
-      { "id": "footer", "x": 300, "y": 1050, "width": 600, "height": 40, "content": "EVERY PICTURE TELLS A STORY, MAKE YOURS PERFECT.", "fontSize": 18, "textAlign": "center" as const }
+      { "id": "category", "x": 400, "y": 100, "width": 400, "height": 30 },
+      { "id": "title", "x": 200, "y": 150, "width": 800, "height": 90 },
+      { "id": "subtitle", "x": 300, "y": 250, "width": 600, "height": 40 },
+      { "id": "footer", "x": 300, "y": 1050, "width": 600, "height": 40 }
     ],
     "imageBoxes": [
       { "id": "photo1", "x": 120, "y": 320, "width": 340, "height": 220 },

@@ -2,6 +2,55 @@ import { create } from 'zustand';
 import type { DesignData, BookPage, PageElement } from '@/lib/types';
 import { v4 as uuid } from 'uuid';
 
+export type LayoutPreset = {
+  id: string;
+  name: string;
+  // x, y, width, height are percentages (0-1) of the page width/height
+  elements: Omit<PageElement, 'id'>[];
+};
+
+export const PRESET_LAYOUTS: LayoutPreset[] = [
+  {
+    id: 'single-full',
+    name: 'Full Bleed',
+    elements: [
+      { type: 'image', x: 0, y: 0, width: 1, height: 1, rotation: 0, zIndex: 1, properties: { src: '' } }
+    ]
+  },
+  {
+    id: 'single-centered',
+    name: 'Centered Square',
+    elements: [
+      { type: 'image', x: 0.1, y: 0.1, width: 0.8, height: 0.8, rotation: 0, zIndex: 1, properties: { src: '' } }
+    ]
+  },
+  {
+    id: 'two-vertical',
+    name: 'Two Vertical',
+    elements: [
+      { type: 'image', x: 0.05, y: 0.05, width: 0.425, height: 0.9, rotation: 0, zIndex: 1, properties: { src: '' } },
+      { type: 'image', x: 0.525, y: 0.05, width: 0.425, height: 0.9, rotation: 0, zIndex: 2, properties: { src: '' } }
+    ]
+  },
+  {
+    id: 'two-horizontal',
+    name: 'Two Horizontal',
+    elements: [
+      { type: 'image', x: 0.05, y: 0.05, width: 0.9, height: 0.425, rotation: 0, zIndex: 1, properties: { src: '' } },
+      { type: 'image', x: 0.05, y: 0.525, width: 0.9, height: 0.425, rotation: 0, zIndex: 2, properties: { src: '' } }
+    ]
+  },
+  {
+    id: 'polaroid-style',
+    name: 'Polaroid Style',
+    elements: [
+      { type: 'image', x: 0.1, y: 0.1, width: 0.8, height: 0.65, rotation: 0, zIndex: 1, properties: { src: '' } },
+      { type: 'text', x: 0.1, y: 0.8, width: 0.8, height: 0.1, rotation: 0, zIndex: 2, properties: { content: 'Add caption', fontFamily: 'Inter', fontSize: 14, color: '#000000', textAlign: 'center', fontWeight: '400' } }
+    ]
+  }
+];
+
+
 interface EditorState {
   projectId: string | null;
   projectName: string;
@@ -11,6 +60,7 @@ interface EditorState {
   isDirty: boolean;
   isSaving: boolean;
   lastSaved: Date | null;
+  uploadedImages: string[];
   
   // History
   history: DesignData[];
@@ -21,6 +71,7 @@ interface EditorState {
   setProjectName: (name: string) => void;
   setCurrentPage: (index: number) => void;
   selectElement: (id: string | null) => void;
+  addUploadedImage: (url: string) => void;
 
   // Undo/Redo
   undo: () => void;
@@ -36,6 +87,7 @@ interface EditorState {
   removeElement: (pageId: string, elementId: string) => void;
   moveElement: (pageId: string, elementId: string, x: number, y: number) => void;
   resizeElement: (pageId: string, elementId: string, width: number, height: number) => void;
+  applyLayoutToPage: (pageId: string, layoutId: string, canvasWidth: number, canvasHeight: number) => void;
 
   // Save
   markSaving: () => void;
@@ -67,6 +119,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   isDirty: false,
   isSaving: false,
   lastSaved: null,
+  uploadedImages: [],
   history: [defaultDesignData],
   historyIndex: 0,
 
@@ -85,6 +138,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   setCurrentPage: (index) => set({ currentPageIndex: index, selectedElementId: null }),
   selectElement: (id) => set({ selectedElementId: id }),
+  addUploadedImage: (url) => set((state) => ({ uploadedImages: [...state.uploadedImages, url] })),
 
   undo: () => set((state) => {
     if (state.historyIndex > 0) {
@@ -228,6 +282,28 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const state = get();
     state.updateElement(pageId, elementId, { width, height });
   },
+
+  applyLayoutToPage: (pageId, layoutId, canvasWidth, canvasHeight) => set((state) => {
+    const layout = PRESET_LAYOUTS.find(l => l.id === layoutId);
+    if (!layout) return state;
+
+    const newElements = layout.elements.map(el => ({
+      ...el,
+      id: uuid(),
+      x: el.x * canvasWidth,
+      y: el.y * canvasHeight,
+      width: el.width * canvasWidth,
+      height: el.height * canvasHeight,
+    }));
+
+    const newData = {
+      ...state.designData,
+      pages: state.designData.pages.map(p =>
+        p.id === pageId ? { ...p, elements: newElements } : p
+      ),
+    };
+    return { designData: newData, isDirty: true, ...pushHistory(state, newData) };
+  }),
 
   markSaving: () => set({ isSaving: true }),
   markSaved: () => set({ isSaving: false, isDirty: false, lastSaved: new Date() }),
