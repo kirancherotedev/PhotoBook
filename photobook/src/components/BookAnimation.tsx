@@ -11,7 +11,7 @@ export default function BookAnimation() {
 
     const container = containerRef.current;
     
-    // Setup
+    // Setup.
     const width = container.clientWidth;
     const height = container.clientHeight;
 

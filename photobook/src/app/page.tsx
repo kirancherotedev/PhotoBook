@@ -620,8 +620,8 @@ export default function HomePage() {
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up">
 =======
-          {/* 2 Large Hero Theme Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in-up" style={{ marginBottom: 48 }}>
+          {/* 2 Hero Theme Cards in a single row on desktop so all fit in one page view */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 fade-in-up" style={{ marginBottom: 40 }}>
 >>>>>>> Stashed changes
             {THEMES.map((t) => (
               <div
@@ -637,8 +637,8 @@ export default function HomePage() {
 >>>>>>> Stashed changes
               >
                 <div
-                  className="relative overflow-hidden aspect-[1.25] mb-4 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
-                  style={{ backgroundColor: COLOR.surface, borderRadius: '3rem 0.5rem 3rem 0.5rem' }}
+                  className="relative overflow-hidden aspect-[1.2] mb-3.5 transition-all duration-300 group-hover:shadow-[0_8px_25px_rgba(0,0,0,0.07)]"
+                  style={{ backgroundColor: COLOR.surface, borderRadius: '1.5rem 0.5rem 1.5rem 0.5rem' }}
                 >
                   <img
                     src={t.img}
@@ -646,17 +646,17 @@ export default function HomePage() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 p-1"
                   />
                 </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-[24px] font-normal mb-1" style={{ fontFamily: 'var(--font-playfair)', color: COLOR.onSurface }}>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-[18px] lg:text-[20px] font-normal mb-1 truncate" style={{ fontFamily: 'var(--font-playfair)', color: COLOR.onSurface }}>
                       {t.name}
                     </h3>
                     <p className="text-[16px]" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.onSurfaceVariant }}>
                       {t.sub}
                     </p>
                   </div>
-                  <span className="text-[16px] font-medium" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.primary }}>
-                    $120
+                  <span className="text-[15px] lg:text-[16px] font-medium whitespace-nowrap pt-0.5" style={{ fontFamily: 'var(--font-hanken)', color: COLOR.primary }}>
+                    ₹1,499
                   </span>
                 </div>
               </div>
