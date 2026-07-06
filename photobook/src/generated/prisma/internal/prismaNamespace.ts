@@ -392,7 +392,8 @@ export const ModelName = {
   Payment: 'Payment',
   PricingRule: 'PricingRule',
   PromoCode: 'PromoCode',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  BookSize: 'BookSize'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -408,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "template" | "project" | "order" | "orderItem" | "payment" | "pricingRule" | "promoCode" | "auditLog"
+    modelProps: "user" | "template" | "project" | "order" | "orderItem" | "payment" | "pricingRule" | "promoCode" | "auditLog" | "bookSize"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1078,6 +1079,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BookSize: {
+      payload: Prisma.$BookSizePayload<ExtArgs>
+      fields: Prisma.BookSizeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BookSizeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BookSizeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>
+        }
+        findFirst: {
+          args: Prisma.BookSizeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BookSizeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>
+        }
+        findMany: {
+          args: Prisma.BookSizeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>[]
+        }
+        create: {
+          args: Prisma.BookSizeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>
+        }
+        createMany: {
+          args: Prisma.BookSizeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BookSizeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>[]
+        }
+        delete: {
+          args: Prisma.BookSizeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>
+        }
+        update: {
+          args: Prisma.BookSizeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>
+        }
+        deleteMany: {
+          args: Prisma.BookSizeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BookSizeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BookSizeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>[]
+        }
+        upsert: {
+          args: Prisma.BookSizeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookSizePayload>
+        }
+        aggregate: {
+          args: Prisma.BookSizeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBookSize>
+        }
+        groupBy: {
+          args: Prisma.BookSizeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookSizeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BookSizeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookSizeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1252,6 +1327,26 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const BookSizeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  label: 'label',
+  category: 'category',
+  desc: 'desc',
+  widthIn: 'widthIn',
+  heightIn: 'heightIn',
+  screenW: 'screenW',
+  screenH: 'screenH',
+  printW: 'printW',
+  printH: 'printH',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BookSizeScalarFieldEnum = (typeof BookSizeScalarFieldEnum)[keyof typeof BookSizeScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1429,6 +1524,7 @@ export type GlobalOmitConfig = {
   pricingRule?: Prisma.PricingRuleOmit
   promoCode?: Prisma.PromoCodeOmit
   auditLog?: Prisma.AuditLogOmit
+  bookSize?: Prisma.BookSizeOmit
 }
 
 /* Types for Logging */

@@ -59,7 +59,8 @@ export const ModelName = {
   Payment: 'Payment',
   PricingRule: 'PricingRule',
   PromoCode: 'PromoCode',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  BookSize: 'BookSize'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -213,6 +214,26 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const BookSizeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  label: 'label',
+  category: 'category',
+  desc: 'desc',
+  widthIn: 'widthIn',
+  heightIn: 'heightIn',
+  screenW: 'screenW',
+  screenH: 'screenH',
+  printW: 'printW',
+  printH: 'printH',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BookSizeScalarFieldEnum = (typeof BookSizeScalarFieldEnum)[keyof typeof BookSizeScalarFieldEnum]
 
 
 export const SortOrder = {

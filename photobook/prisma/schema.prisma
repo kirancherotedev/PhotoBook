@@ -139,3 +139,20 @@ model AuditLog {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 }
+
+model BookSize {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  label     String
+  category  String
+  desc      String?
+  widthIn   Float
+  heightIn  Float
+  screenW   Int
+  screenH   Int
+  printW    Int
+  printH    Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

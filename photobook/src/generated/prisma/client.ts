@@ -86,3 +86,8 @@ export type PromoCode = Prisma.PromoCodeModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model BookSize
+ * 
+ */
+export type BookSize = Prisma.BookSizeModel
