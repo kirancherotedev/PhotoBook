@@ -155,8 +155,8 @@ function TemplateDetailContent({ params }: { params: { id: string } }) {
             </p>
             
             <div className="flex items-baseline gap-4">
-              <span className="text-[#173124]" style={{ fontFamily: 'var(--font-playfair)', fontSize: 32, fontWeight: 500 }}>From $129</span>
-              <span className="text-[#424844] line-through" style={{ fontFamily: 'var(--font-hanken)', fontSize: 16 }}>$149</span>
+              <span className="text-[#173124]" style={{ fontFamily: 'var(--font-playfair)', fontSize: 32, fontWeight: 500 }}>From ₹1,499</span>
+              <span className="text-[#424844] line-through" style={{ fontFamily: 'var(--font-hanken)', fontSize: 16 }}>₹1,999</span>
             </div>
           </div>
 
@@ -220,7 +220,7 @@ function TemplateDetailContent({ params }: { params: { id: string } }) {
                       <div className="text-[#424844] text-[14px]">High contrast, vibrant colors.</div>
                     </div>
                   </div>
-                  <span className="text-[#1d1b17] text-[14px]">+$15</span>
+                  <span className="text-[#1d1b17] text-[14px]">+₹200</span>
                 </label>
                 
                 <label onClick={() => setSelectedPaper('silk')} className={`flex items-center justify-between p-4 rounded cursor-pointer transition-colors ${selectedPaper === 'silk' ? 'border-2 border-[#173124] bg-[#f9f3eb]' : 'border border-[#e7e2da] bg-[#fff8f0] hover:border-[#727973]'}`}>
@@ -231,7 +231,7 @@ function TemplateDetailContent({ params }: { params: { id: string } }) {
                       <div className="text-[#424844] text-[14px]">Textured, subtle sheen. Premium.</div>
                     </div>
                   </div>
-                  <span className="text-[#1d1b17] text-[14px]">+$35</span>
+                  <span className="text-[#1d1b17] text-[14px]">+₹400</span>
                 </label>
               </div>
             </div>
